@@ -11,7 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://api-dntrace.vercel.app/',
         changeOrigin: true,
       }
     }
