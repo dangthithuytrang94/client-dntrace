@@ -20,6 +20,9 @@ import {
   Settings,
   RefreshCw,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
   Printer,
   FileText,
   Eye,
@@ -36,9 +39,163 @@ import {
 } from 'lucide-react';
 import { fetchProducts, fetchProductById, slugify } from '../services/api';
 
+/**
+ * Mobile Slick Slider & Desktop Grid for Product Gallery Images
+ */
+function ProductGallerySlider({ images, productName, onOpenLightbox }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  if (!images || images.length === 0) {
+    return (
+      <div className="p-8 rounded-2xl bg-stone-50 border border-stone-200 text-center text-xs font-medium text-stone-400">
+        Chưa có dữ liệu
+      </div>
+    );
+  }
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* MOBILE SLICK SLIDER (chỉ hiển thị trên Mobile < sm) */}
+      <div className="block sm:hidden space-y-3">
+        {/* Main Slide Card */}
+        <div className="relative group">
+          <div
+            className="relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shadow-sm cursor-zoom-in select-none flex items-center justify-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onClick={() => onOpenLightbox && onOpenLightbox(images[currentIndex])}
+          >
+            <img
+              src={images[currentIndex]}
+              alt={`${productName} ảnh ${currentIndex + 1}`}
+              className="w-full h-full object-cover "
+            />
+
+            {/* Tap to Zoom Badge */}
+            <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-black/65 text-white text-[10px] font-semibold flex items-center gap-1 backdrop-blur-xs shadow">
+              <ZoomIn className="w-3.5 h-3.5" />
+              <span>Chạm xem lớn</span>
+            </div>
+
+            {/* Counter Badge */}
+            {images.length > 1 && (
+              <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/65 text-white text-[11px] font-bold backdrop-blur-xs shadow">
+                {currentIndex + 1} / {images.length}
+              </div>
+            )}
+          </div>
+
+          {/* 2 Navigation Buttons: Trái (Left) & Phải (Right) */}
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevSlide();
+                }}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white flex items-center justify-center shadow-lg transition backdrop-blur-xs z-10 cursor-pointer"
+                aria-label="Ảnh trước"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextSlide();
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white flex items-center justify-center shadow-lg transition backdrop-blur-xs z-10 cursor-pointer"
+                aria-label="Ảnh kế tiếp"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* 2 Navigation Buttons Dưới & Dots Pagination */}
+      
+
+        {/* Thumbnails strip on mobile */}
+        {images.length > 1 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1">
+            {images.map((img, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrentIndex(idx)}
+                className={`relative shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition ${
+                  idx === currentIndex ? 'border-[#0f2d22] ring-2 ring-[#84CC16]/50' : 'border-stone-200 opacity-60'
+                }`}
+              >
+                <img src={img} alt={`thumb ${idx + 1}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP / TABLET: Responsive Grid (ẩn trên mobile, hiện từ sm trở lên) */}
+      <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {images.map((img, idx) => (
+          <div
+            key={idx}
+            onClick={() => onOpenLightbox && onOpenLightbox(img)}
+            className="group relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-50 border border-stone-200 shadow-sm hover:shadow-md transition cursor-zoom-in"
+          >
+            <img
+              src={img}
+              alt={`${productName} ảnh ${idx + 1}`}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1 text-xs font-semibold">
+              <ZoomIn className="w-4 h-4" />
+              <span>Xem ảnh lớn</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProductTraceabilityPage({
   selectedProductId,
   onProductChange,
+  onBackToHome,
   onOpenQrRegister,
   onNavigateToAdmin
 }) {
@@ -175,8 +332,19 @@ export default function ProductTraceabilityPage({
         {/* Top Utility & Switcher Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-stone-200">
           
-          {/* Product Switcher Dropdown */}
+          {/* Product Switcher Dropdown & Back to Home */}
           <div className="flex items-center gap-2">
+            {onBackToHome && (
+              <button
+                onClick={onBackToHome}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0f2d22] px-3 py-2 rounded-xl bg-white border border-stone-200 shadow-sm hover:bg-stone-50 active:scale-95 transition cursor-pointer"
+                title="Về Trang Chủ"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-[#0f2d22]" />
+                <span className="hidden sm:inline">Trang Chủ</span>
+              </button>
+            )}
+
             <div className="relative inline-block">
               <button
                 onClick={() => setShowProductDropdown(!showProductDropdown)}
@@ -310,7 +478,7 @@ export default function ProductTraceabilityPage({
                 {productData.name}
               </h1>
               <p className="text-xs sm:text-sm text-stone-200 max-w-2xl leading-relaxed">
-                Dữ liệu tem điện tử chính hãng được xác thực trên Hệ thống truy xuất nguồn gốc số{' '}
+                Dữ liệu tem điện tử chính hãng được xác thực trên Hệ thống truy xuất thông tin số{' '}
                 <strong className="text-[#84CC16]">dntrace.com</strong>. Minh bạch toàn diện thông tin sản phẩm, cơ sở sản xuất và chuỗi cung ứng.
               </p>
             </div>
@@ -373,7 +541,7 @@ export default function ProductTraceabilityPage({
             {/* Document Header */}
             <div className="text-center pb-6 border-b-2 border-stone-800 space-y-2">
               <p className="text-[11px] font-bold text-stone-500 uppercase tracking-widest">
-                HỆ THỐNG TRUY XUẤT NGUỒN GỐC SỐ DNTRACE.COM
+                HỆ THỐNG truy xuất thông tin SỐ DNTRACE.COM
               </p>
               <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight uppercase">
                 BẢN THÔNG TIN CÔNG BỐ SẢN PHẨM
@@ -549,19 +717,11 @@ export default function ProductTraceabilityPage({
                 <h4 className="text-sm font-black text-stone-900 uppercase tracking-wide">
                   HÌNH ẢNH SẢN PHẨM
                 </h4>
-                {galleryImages.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {galleryImages.map((img, i) => (
-                      <div key={i} className="aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-50 p-2 flex items-center justify-center">
-                        <img src={img} alt={`${productData.name} ${i + 1}`} className="w-full h-full object-contain" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 text-center text-xs text-stone-400">
-                    Chưa có dữ liệu
-                  </div>
-                )}
+                <ProductGallerySlider
+                  images={galleryImages}
+                  productName={productData.name}
+                  onOpenLightbox={(img) => setLightboxImg(img)}
+                />
               </div>
 
             </div>
@@ -964,31 +1124,11 @@ export default function ProductTraceabilityPage({
                     </div>
                   </div>
 
-                  {galleryImages.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {galleryImages.map((img, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => setLightboxImg(img)}
-                          className="group relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-50 border border-stone-200 shadow-sm hover:shadow-md transition cursor-zoom-in"
-                        >
-                          <img
-                            src={img}
-                            alt={`${productData.name} ảnh ${idx + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1 text-xs font-semibold">
-                            <ZoomIn className="w-4 h-4" />
-                            <span>Xem ảnh lớn</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-8 rounded-2xl bg-stone-50 border border-stone-200 text-center text-xs font-medium text-stone-400">
-                      Chưa có dữ liệu
-                    </div>
-                  )}
+                  <ProductGallerySlider
+                    images={galleryImages}
+                    productName={productData.name}
+                    onOpenLightbox={(img) => setLightboxImg(img)}
+                  />
                 </div>
               )}
 
@@ -1005,7 +1145,7 @@ export default function ProductTraceabilityPage({
                     DÀNH CHO DOANH NGHIỆP &amp; HỢP TÁC XÃ
                   </span>
                   <h4 className="text-lg sm:text-xl font-black text-white">
-                    Đăng Ký Cấp Mã QR Truy Xuất Nguồn Gốc dntrace.com
+                    Đăng Ký Cấp Mã QR truy xuất thông tin dntrace.com
                   </h4>
                   <p className="text-xs text-stone-200 max-w-xl">
                     Khởi tạo cổng truy xuất, tem chống giả và nhật ký sản xuất minh bạch cho sản phẩm của bạn chỉ trong 24 giờ.

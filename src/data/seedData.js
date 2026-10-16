@@ -1,7 +1,7 @@
 export const defaultSeedProducts = [
   {
     name: "Kẹo dừa dẻo Ngọc Hải",
-    system: "CỔNG TRUY XUẤT NGUỒN GỐC DNTRACE (dntrace.com)",
+    system: "CỔNG truy xuất thông tin DNTRACE (dntrace.com)",
     provider: "dntrace.com",
     status: "ĐÃ XÁC THỰC THÀNH CÔNG",
     verificationCode: "DNTRACE-KDNH-2026-049189",
@@ -49,7 +49,7 @@ export const defaultSeedProducts = [
   },
   {
     name: "NGŨ CỐC DINH DƯỠNG CHO NGƯỜI CAO TUỔI",
-    system: "CỔNG TRUY XUẤT NGUỒN GỐC DNTRACE (dntrace.com)",
+    system: "CỔNG truy xuất thông tin DNTRACE (dntrace.com)",
     provider: "dntrace.com",
     status: "ĐÃ XÁC THỰC THÀNH CÔNG",
     verificationCode: "DNTRACE-HF-2022-049189",

@@ -71,22 +71,28 @@
   box-shadow: 0 20px 35px -10px rgba(23, 76, 60, 0.12);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar (nhỏ đi 1 nửa: 4px, thanh mảnh và tinh tế) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #B6CBB9 transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F3EFE6;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #B6CBB9;
-  border-radius: 4px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7BAE82;
+  background: #84CC16;
 }
 
 /* Animations */

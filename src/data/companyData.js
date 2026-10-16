@@ -7,7 +7,7 @@ export const companyInfo = {
   foundedDate: "08/06/2015",
   slogan: "Vạn tinh hoa cho thương hiệu",
   visionStatement: "Kiến tạo thương hiệu. Nâng tầm nông sản. Mở rộng tương lai.",
-  description: "Đơn vị chuyên sâu tư vấn chiến lược nhận diện thương hiệu, thiết kế bao bì chuẩn OCOP, giải pháp website và hệ sinh thái truy xuất nguồn gốc tem QR VCheck cho các hợp tác xã, doanh nghiệp vừa và nhỏ và chủ thể nông sản địa phương.",
+  description: "Đơn vị chuyên sâu tư vấn chiến lược nhận diện thương hiệu, thiết kế bao bì chuẩn OCOP, giải pháp website và hệ sinh thái truy xuất thông tin tem QR VCheck cho các hợp tác xã, doanh nghiệp vừa và nhỏ và chủ thể nông sản địa phương.",
   address: "An Hà Nam, Phường An Phú, TP. Tam Kỳ, Tỉnh Quảng Nam",
   officeAddress: "66 Hồ Nghinh, Phường Bàn Thạch, Tam Kỳ / Đà Nẵng",
   hotline: "0336.48.9699",
@@ -94,9 +94,9 @@ export const serviceClusters = [
   {
     id: "truy-xuat-nguon-goc-vcheck",
     code: "05",
-    title: "Truy Xuất Nguồn Gốc & Tem QR Thông Minh (VCheck)",
+    title: "truy xuất thông tin & Tem QR Thông Minh (VCheck)",
     badge: "QR & Traceability",
-    shortDesc: "Hệ thống truy xuất nguồn gốc điện tử VCheck, chống hàng giả hàng nhái và minh bạch toàn bộ chuỗi cung ứng nông sản.",
+    shortDesc: "Hệ thống truy xuất thông tin điện tử VCheck, chống hàng giả hàng nhái và minh bạch toàn bộ chuỗi cung ứng nông sản.",
     detailDesc: "Kết nối dữ liệu từ nông trại đến bàn ăn. Tem QR điện tử VCheck cho phép người tiêu dùng quét mã tra cứu thông tin vùng trồng, ngày thu hoạch, chứng nhận ATVSTP, xây dựng niềm tin vững chắc vào chất lượng sản phẩm.",
     deliverables: [
       "Tài khoản quản lý doanh nghiệp trên hệ sinh thái VCheck (vcheck.com.vn)",
@@ -153,13 +153,13 @@ export const portfolioProjects = [
     ocopRank: "OCOP 3 Sao Chuẩn Hóa",
     category: "Chương trình OCOP",
     categorySlug: "ocop",
-    servicesDone: ["Thiết kế Logo", "Bao bì nhãn chai", "Câu chuyện sản phẩm OCOP", "Truy xuất nguồn gốc QR"],
+    servicesDone: ["Thiết kế Logo", "Bao bì nhãn chai", "Câu chuyện sản phẩm OCOP", "truy xuất thông tin QR"],
     isVerifiedReal: true,
     labelBadge: "Dự án thực tế xác minh",
     image: "/assets/ocop_products.jpg",
     summary: "May áo mới cho dòng sữa bắp ngô nếp Thu Bồn thơm lành từ vùng bãi bồi ven sông, hoàn thiện hồ sơ dự thi OCOP và tem QR minh bạch nguồn gốc.",
     challenge: "Bà con nông dân trồng ngô bãi bồi đạt năng suất nhưng giá bán bấp bênh. Khi chế biến thành sữa bắp, chai đựng chưa có tem nhãn bắt mắt và chưa chứng minh được vùng trồng sạch.",
-    solution: "Thiết kế nhãn chai ấm áp với hình ảnh cánh đồng bắp và dòng sông Thu Bồn, biên soạn câu chuyện sản phẩm gắn với phù sa quê mẹ, tích hợp tem QR truy xuất nguồn gốc VCheck.",
+    solution: "Thiết kế nhãn chai ấm áp với hình ảnh cánh đồng bắp và dòng sông Thu Bồn, biên soạn câu chuyện sản phẩm gắn với phù sa quê mẹ, tích hợp tem QR truy xuất thông tin VCheck.",
     impact: "Sản phẩm nhanh chóng hoàn thiện hồ sơ đạt chuẩn OCOP, được đưa vào các căng-tin trường học, chuỗi cửa hàng thực phẩm sạch tại Đà Nẵng và Quảng Nam."
   },
   {
@@ -191,7 +191,7 @@ export const portfolioProjects = [
     isVerifiedReal: true,
     labelBadge: "Giải pháp công nghệ xác minh",
     image: "/assets/qr_traceability.jpg",
-    summary: "Nền tảng số hóa quản lý chuỗi cung ứng, xuất tem QR truy xuất nguồn gốc từng lô nông sản, hỗ trợ doanh nghiệp minh bạch thông tin.",
+    summary: "Nền tảng số hóa quản lý chuỗi cung ứng, xuất tem QR truy xuất thông tin từng lô nông sản, hỗ trợ doanh nghiệp minh bạch thông tin.",
     challenge: "Khách hàng tiêu dùng hiện đại đòi hỏi sự minh bạch cao về xuất xứ, trong khi các hộ nông dân gặp rào cản khi ứng dụng phần mềm phức tạp.",
     solution: "Vạn Phúc Hoa triển khai nền tảng VCheck tinh gọn, dễ dùng trên điện thoại, tạo mã QR duy nhất cho từng lô hàng tích hợp thông tin nhật ký sản xuất.",
     impact: "Hàng trăm ngàn mã tem QR được quét mỗi tháng, giúp các chủ thể nông sản tự tin đưa hàng vào các siêu thị Co.opmart, WinMart."
@@ -309,7 +309,7 @@ Vạn Phúc Hoa luôn đồng hành cùng các chủ thể để rà soát từn
   },
   {
     id: "truy-xuat-nguon-goc-qr-vcheck",
-    title: "Truy xuất nguồn gốc bằng mã QR: Bước đệm số hóa bắt buộc cho nông sản Việt",
+    title: "truy xuất thông tin bằng mã QR: Bước đệm số hóa bắt buộc cho nông sản Việt",
     category: "Chuyển đổi số",
     date: "Giải pháp công nghệ",
     readTime: "4 phút đọc",
@@ -321,7 +321,7 @@ Ngày nay, người tiêu dùng không chỉ quan tâm đến giá thành mà đ
 Tại sao HTX cần triển khai hệ thống QR VCheck ngay hôm nay?
 - Minh bạch quy trình: Người quét có thể thấy nhật ký chăm sóc, bón phân, ngày thu hoạch và giấy xét nghiệm đạt chuẩn an toàn thực phẩm.
 - Chống hàng giả, bảo vệ thương hiệu: Mã QR mã hóa động ngăn chặn gian lận tem nhãn trên thị trường.
-- Điều kiện bắt buộc vào siêu thị: Hầu hết các hệ thống bán lẻ hiện đại (Co.opmart, WinMart, Big C / GO) đều yêu cầu sản phẩm nông sản phải có mã truy xuất nguồn gốc rõ ràng.
+- Điều kiện bắt buộc vào siêu thị: Hầu hết các hệ thống bán lẻ hiện đại (Co.opmart, WinMart, Big C / GO) đều yêu cầu sản phẩm nông sản phải có mã truy xuất thông tin rõ ràng.
 - Kênh tương tác trực tiếp với khách hàng: Người dùng sau khi quét có thể liên hệ đặt hàng trực tiếp, đánh giá phản hồi, giúp cơ sở nâng cao chất lượng dịch vụ.
 
 Với nền tảng VCheck (vcheck.com.vn), việc khởi tạo và quản lý mã QR trở nên dễ dàng chỉ với vài thao tác trên máy tính hoặc điện thoại thông minh.
@@ -376,8 +376,8 @@ export const faqList = [
     a: "Có. Chúng tôi cung cấp giải pháp đồng bộ từ thiết kế logo, cấu trúc bao bì, in ấn mẫu thử, biên soạn câu chuyện sản phẩm cho đến hướng dẫn lập hồ sơ minh chứng tham gia đánh giá phân hạng OCOP cấp huyện và cấp tỉnh."
   },
   {
-    q: "Hệ thống tem QR truy xuất nguồn gốc VCheck hoạt động như thế nào?",
-    a: "VCheck (vcheck.com.vn) là nền tảng truy xuất nguồn gốc điện tử cho phép chủ doanh nghiệp cấp mã QR cho từng lô hàng. Khách hàng chỉ cần dùng camera điện thoại hoặc Zalo để quét là có thể xem ngay nhật ký sản xuất, vùng nguyên liệu và giấy chứng nhận kiểm định chất lượng."
+    q: "Hệ thống tem QR truy xuất thông tin VCheck hoạt động như thế nào?",
+    a: "VCheck (vcheck.com.vn) là nền tảng truy xuất thông tin điện tử cho phép chủ doanh nghiệp cấp mã QR cho từng lô hàng. Khách hàng chỉ cần dùng camera điện thoại hoặc Zalo để quét là có thể xem ngay nhật ký sản xuất, vùng nguyên liệu và giấy chứng nhận kiểm định chất lượng."
   },
   {
     q: "Chi phí thiết kế và tư vấn tại Vạn Phúc Hoa có phù hợp với Hợp tác xã (HTX) nhỏ không?",

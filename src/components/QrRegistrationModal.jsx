@@ -21,7 +21,7 @@ export default function QrRegistrationModal({ isOpen, onClose, initialProductNam
     businessName: '',
     productName: initialProductName || '',
     address: '',
-    qrType: 'Tem Truy Xuất Nguồn Gốc (QR Code)',
+    qrType: 'Tem truy xuất thông tin (QR Code)',
     quantity: '1.000 - 5.000 tem',
     note: ''
   });
@@ -85,7 +85,7 @@ export default function QrRegistrationModal({ isOpen, onClose, initialProductNam
             <span className="text-xs text-stone-200">Hệ thống cấp tem chính hãng</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1">
-            Đăng Ký Cấp Mã QR Truy Xuất Nguồn Gốc
+            Đăng Ký Cấp Mã QR truy xuất thông tin
           </h3>
           <p className="text-xs text-[#DFCA9B] mt-1">
             Minh bạch chuỗi cung ứng &bull; Chống hàng nhái &bull; Tăng niềm tin người tiêu dùng
@@ -225,7 +225,7 @@ export default function QrRegistrationModal({ isOpen, onClose, initialProductNam
                     onChange={(e) => setFormData({ ...formData, qrType: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#174C3C]"
                   >
-                    <option value="Tem Truy Xuất Nguồn Gốc (QR Code)">Tem Truy Xuất Nguồn Gốc (QR Code)</option>
+                    <option value="Tem truy xuất thông tin (QR Code)">Tem truy xuất thông tin (QR Code)</option>
                     <option value="Tem Chống Giả Điện Tử QR">Tem Chống Giả Điện Tử QR</option>
                     <option value="Tem Sản Phẩm OCOP 3–5 Sao">Tem Sản Phẩm OCOP 3–5 Sao</option>
                     <option value="Tem Bảo Hành & Định Danh Số">Tem Bảo Hành &amp; Định Danh Số</option>

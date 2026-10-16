@@ -9,7 +9,7 @@ export default function DNTraceLogo({ className = "h-9", isWhite = false }) {
         <img
           src="/assets/dntrace_logo_header.png"
           alt="dntrace.com"
-          className="h-8 sm:h-9 w-auto max-w-[190px] sm:max-w-[220px] object-contain"
+          className="h-8 sm:h-10 md:h-12 w-auto max-w-[145px] sm:max-w-[220px] object-contain"
           onError={() => setImageError(true)}
         />
       ) : (

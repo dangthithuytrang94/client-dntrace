@@ -91,7 +91,7 @@ export default function AdminProductManager({
   const initialFormState = {
     name: '',
     slug: '',
-    system: 'CỔNG TRUY XUẤT NGUỒN GỐC DNTRACE (dntrace.com)',
+    system: 'CỔNG truy xuất thông tin DNTRACE (dntrace.com)',
     provider: 'dntrace.com',
     status: 'ĐÃ XÁC THỰC THÀNH CÔNG',
     verificationCode: '',
@@ -170,7 +170,7 @@ export default function AdminProductManager({
     setFormData({
       name: product.name || '',
       slug: product.slug || slugify(product.name || ''),
-      system: product.system || 'CỔNG TRUY XUẤT NGUỒN GỐC DNTRACE (dntrace.com)',
+      system: product.system || 'CỔNG truy xuất thông tin DNTRACE (dntrace.com)',
       provider: product.provider || 'dntrace.com',
       status: product.status || 'ĐÃ XÁC THỰC THÀNH CÔNG',
       verificationCode: product.verificationCode || '',
@@ -1019,7 +1019,7 @@ export default function AdminProductManager({
                     {editingProduct ? 'Chỉnh Sửa Thông Tin Sản Phẩm' : 'Thêm Sản Phẩm Mới Vào Hệ Thống dntrace.com'}
                   </h3>
                   <p className="text-xs text-stone-300">
-                    Điền đầy đủ thông tin để cấp tem truy xuất nguồn gốc chính hãng
+                    Điền đầy đủ thông tin để cấp tem truy xuất thông tin chính hãng
                   </p>
                 </div>
               </div>
