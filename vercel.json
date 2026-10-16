@@ -2,8 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-    "destination": "http://api-dntrace.vercel.app/api/$1"
-
+      "destination": "https://api-dntrace.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",

@@ -154,20 +154,12 @@ export default function ProductTraceabilityPage({
     );
   }
 
-  // Combine & guarantee rich gallery images (always multiple photos)
+  // Lấy danh sách ảnh thực tế từ database (không dùng ảnh thay thế)
   const rawList = [
     ...(productData.image ? [productData.image] : []),
     ...(Array.isArray(productData.gallery) ? productData.gallery : [])
   ];
-  const uniqueImages = Array.from(new Set(rawList.filter(Boolean)));
-  const defaultSupplementImages = [
-    '/assets/ocop_products.jpg',
-    '/assets/qr_traceability.jpg',
-    '/assets/dntrace_logo.jpg'
-  ];
-  const galleryImages = uniqueImages.length >= 3
-    ? uniqueImages
-    : Array.from(new Set([...uniqueImages, ...defaultSupplementImages]));
+  const galleryImages = Array.from(new Set(rawList.filter(Boolean)));
 
   // Scannable QR code linking to http:.../ten-san-pham
   const productSlug = productData.slug || slugify(productData.name);
@@ -402,43 +394,43 @@ export default function ProductTraceabilityPage({
                   <tbody className="divide-y divide-stone-100">
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800 w-1/3 sm:w-1/4">Tên sản phẩm</td>
-                      <td className="py-3 px-4 font-bold text-stone-900 text-base">{productData.name}</td>
+                      <td className="py-3 px-4 font-bold text-stone-900 text-base">{productData.name || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800 align-top">Thành phần</td>
-                      <td className="py-3 px-4 text-stone-800 whitespace-pre-line leading-relaxed">{productData.ingredients || 'Đang cập nhật'}</td>
+                      <td className="py-3 px-4 text-stone-800 whitespace-pre-line leading-relaxed">{productData.ingredients || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800">Số TCBSP</td>
-                      <td className="py-3 px-4 font-mono font-bold text-stone-900">{productData.tcbsp || 'Đang cập nhật'}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-stone-900">{productData.tcbsp || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800">Số Tiêu chuẩn</td>
-                      <td className="py-3 px-4 text-stone-800">{productData.standardCode || '—'}</td>
+                      <td className="py-3 px-4 text-stone-800">{productData.standardCode || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800">Ngày sản xuất</td>
-                      <td className="py-3 px-4 text-stone-800 font-medium">{productData.manufactureDate || 'Xem trên bao bì'}</td>
+                      <td className="py-3 px-4 text-stone-800 font-medium">{productData.manufactureDate || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800">Thời hạn sử dụng</td>
-                      <td className="py-3 px-4 text-stone-800 font-medium">{productData.expiry || 'đang cập nhật'}</td>
+                      <td className="py-3 px-4 text-stone-800 font-medium">{productData.expiry || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800">Khối lượng tịnh</td>
-                      <td className="py-3 px-4 text-stone-800 font-medium">{productData.netWeight || 'đang cập nhật'}</td>
+                      <td className="py-3 px-4 text-stone-800 font-medium">{productData.netWeight || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800 align-top">Hướng dẫn sử dụng</td>
-                      <td className="py-3 px-4 text-stone-800 whitespace-pre-line leading-relaxed">{productData.usageGuide || 'xem chi tiết trên bao bì'}</td>
+                      <td className="py-3 px-4 text-stone-800 whitespace-pre-line leading-relaxed">{productData.usageGuide || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800 align-top">Bảo quản</td>
-                      <td className="py-3 px-4 text-stone-800 whitespace-pre-line leading-relaxed">{productData.storageGuide || 'Bảo quản ở nơi khô ráo thoáng mát tránh ánh nắng trực tiếp'}</td>
+                      <td className="py-3 px-4 text-stone-800 whitespace-pre-line leading-relaxed">{productData.storageGuide || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800">Cảnh báo</td>
-                      <td className="py-3 px-4 text-stone-800">{productData.warning || '—'}</td>
+                      <td className="py-3 px-4 text-stone-800">{productData.warning || 'Chưa có dữ liệu'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -456,30 +448,32 @@ export default function ProductTraceabilityPage({
                   <tbody className="divide-y divide-stone-100">
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800 w-1/3 sm:w-1/4">Tên đơn vị:</td>
-                      <td className="py-3 px-4 font-bold text-stone-900 text-base">{productData.manufacturer?.name || 'Đang cập nhật'}</td>
+                      <td className="py-3 px-4 font-bold text-stone-900 text-base">{productData.manufacturer?.name || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800">Quốc gia:</td>
-                      <td className="py-3 px-4 text-stone-800">{productData.manufacturer?.country || 'Việt Nam'}</td>
+                      <td className="py-3 px-4 text-stone-800">{productData.manufacturer?.country || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800">Số XNCK ATTP</td>
-                      <td className="py-3 px-4 font-mono font-bold text-stone-900">{productData.manufacturer?.attpCode || '11/XNCK-KTHT'}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-stone-900">{productData.manufacturer?.attpCode || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800">Địa chỉ liên lạc:</td>
-                      <td className="py-3 px-4 text-stone-800">{productData.manufacturer?.address || 'Đang cập nhật'}</td>
+                      <td className="py-3 px-4 text-stone-800">{productData.manufacturer?.address || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr className="bg-stone-50/70">
                       <td className="py-3 px-4 font-bold text-stone-800">Số đăng ký kinh doanh</td>
-                      <td className="py-3 px-4 font-mono font-bold text-stone-900">{productData.manufacturer?.businessId || '049189001652'}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-stone-900">{productData.manufacturer?.businessId || 'Chưa có dữ liệu'}</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-bold text-stone-800">Di động:</td>
                       <td className="py-3 px-4 font-mono font-bold text-[#0f2d22]">
-                        <a href={`tel:${(productData.manufacturer?.phone || '').replace(/\s+/g, '')}`} className="hover:underline">
-                          {productData.manufacturer?.phone }
-                        </a>
+                        {productData.manufacturer?.phone ? (
+                          <a href={`tel:${productData.manufacturer.phone.replace(/\s+/g, '')}`} className="hover:underline">
+                            {productData.manufacturer.phone}
+                          </a>
+                        ) : 'Chưa có dữ liệu'}
                       </td>
                     </tr>
                     <tr className="bg-stone-50/70">
@@ -494,7 +488,7 @@ export default function ProductTraceabilityPage({
                           >
                             {productData.manufacturer.website}
                           </a>
-                        ) : '—'}
+                        ) : 'Chưa có dữ liệu'}
                       </td>
                     </tr>
                   </tbody>
@@ -511,7 +505,7 @@ export default function ProductTraceabilityPage({
                   CÂU CHUYỆN SẢN PHẨM
                 </h4>
                 <p className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-stone-50 p-4 rounded-xl border border-stone-200 whitespace-pre-line">
-                  {productData.story || 'Kẹo dừa dẻo Ngọc Hải là sản phẩm truyền thống đậm đà bản sắc của Hộ Kinh Doanh Đặng Ngọc Hải.'}
+                  {productData.story || 'Chưa có dữ liệu'}
                 </p>
               </div>
 
@@ -521,7 +515,7 @@ export default function ProductTraceabilityPage({
                   NGUYÊN LIỆU ĐẦU VÀO
                 </h4>
                 <p className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-stone-50 p-4 rounded-xl border border-stone-200 whitespace-pre-line">
-                  {productData.rawMaterials}
+                  {productData.rawMaterials || 'Chưa có dữ liệu'}
                 </p>
               </div>
 
@@ -531,8 +525,8 @@ export default function ProductTraceabilityPage({
                   BẢN ĐỒ VÙNG NGUYÊN LIỆU / NƠI SẢN XUẤT
                 </h4>
                 <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs text-stone-700">
-                  <p className="font-semibold mb-2">Địa chỉ: {productData.manufacturer?.address || 'Thôn Thắng Đông, xã Quế Sơn, thành phố Đà Nẵng'}</p>
-                  {productData.mapEmbed && (
+                  <p className="font-semibold mb-2">Địa chỉ: {productData.manufacturer?.address || 'Chưa có dữ liệu'}</p>
+                  {productData.mapEmbed ? (
                     <div className="rounded-lg overflow-hidden h-64 border border-stone-200">
                       <iframe
                         title="Bản đồ nơi sản xuất"
@@ -544,6 +538,8 @@ export default function ProductTraceabilityPage({
                         loading="lazy"
                       />
                     </div>
+                  ) : (
+                    <p className="text-stone-400 italic">Chưa có dữ liệu bản đồ</p>
                   )}
                 </div>
               </div>
@@ -553,13 +549,19 @@ export default function ProductTraceabilityPage({
                 <h4 className="text-sm font-black text-stone-900 uppercase tracking-wide">
                   HÌNH ẢNH SẢN PHẨM
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {galleryImages.map((img, i) => (
-                    <div key={i} className="aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-50 p-2 flex items-center justify-center">
-                      <img src={img} alt={`${productData.name} ${i + 1}`} className="w-full h-full object-contain" />
-                    </div>
-                  ))}
-                </div>
+                {galleryImages.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {galleryImages.map((img, i) => (
+                      <div key={i} className="aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-50 p-2 flex items-center justify-center">
+                        <img src={img} alt={`${productData.name} ${i + 1}`} className="w-full h-full object-contain" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 text-center text-xs text-stone-400">
+                    Chưa có dữ liệu
+                  </div>
+                )}
               </div>
 
             </div>
@@ -578,31 +580,27 @@ export default function ProductTraceabilityPage({
               <div className="lg:col-span-5 space-y-6">
 
                 {/* Real Product Image Showcase */}
-                <div className="bg-white rounded-3xl p-6  border border-stone-200 shadow-sm relative group overflow-hidden">
-                  <div
-                    onClick={() => setLightboxImg(productData?.image)}
-                    className="relative aspect-square rounded-2xl overflow-hidden bg-stone-50 flex items-center justify-center cursor-zoom-in"
-                  >
-                    <img
-                      src={productData.image}
-                      alt={productData.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ZoomIn className="w-4 h-4" />
+                <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm relative group overflow-hidden">
+                  {productData.image ? (
+                    <div
+                      onClick={() => setLightboxImg(productData.image)}
+                      className="relative aspect-square rounded-2xl overflow-hidden bg-stone-50 flex items-center justify-center cursor-zoom-in"
+                    >
+                      <img
+                        src={productData.image}
+                        alt={productData.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ZoomIn className="w-4 h-4" />
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Verification Status Pill */}
-                  {/* <div className="mt-4 pt-4 border-t border-stone-100 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-xs font-bold text-stone-700">Tem chính hãng dntrace.com</span>
+                  ) : (
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-stone-50 border border-stone-200/80 flex flex-col items-center justify-center p-6 text-stone-400 space-y-2">
+                      <ImageIcon className="w-12 h-12 text-stone-300" />
+                      <span className="text-xs font-semibold">Chưa có dữ liệu</span>
                     </div>
-                    <span className="text-[11px] font-semibold text-[#84CC16] bg-[#0f2d22] px-2.5 py-1 rounded-lg">
-                      Đã kiểm định
-                    </span>
-                  </div> */}
+                  )}
                 </div>
 
                 {/* Manufacturer Card (THÔNG TIN ĐƠN VỊ/ NHÀ SẢN XUẤT) */}
@@ -622,55 +620,55 @@ export default function ProductTraceabilityPage({
                   <div className="space-y-3 text-xs text-stone-700">
                     <div>
                       <span className="text-stone-500 block text-[11px]">Tên đơn vị:</span>
-                      <span className="font-bold text-stone-900 text-sm">{productData.manufacturer?.name || 'Hộ Kinh Doanh Đặng Ngọc Hải'}</span>
+                      <span className="font-bold text-stone-900 text-sm">{productData.manufacturer?.name || 'Chưa có dữ liệu'}</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 pt-1">
                       <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-100">
                         <span className="text-stone-500 block text-[10px] uppercase font-semibold">Quốc gia</span>
-                        <span className="font-bold text-stone-900 text-xs mt-0.5 block">{productData.manufacturer?.country || 'Việt Nam'}</span>
+                        <span className="font-bold text-stone-900 text-xs mt-0.5 block">{productData.manufacturer?.country || 'Chưa có dữ liệu'}</span>
                       </div>
                       <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-100">
                         <span className="text-stone-500 block text-[10px] uppercase font-semibold">Số XNCK ATTP</span>
-                        <span className="font-mono font-bold text-[#0f2d22] text-xs mt-0.5 block">{productData.manufacturer?.attpCode || '11/XNCK-KTHT'}</span>
+                        <span className="font-mono font-bold text-[#0f2d22] text-xs mt-0.5 block">{productData.manufacturer?.attpCode || 'Chưa có dữ liệu'}</span>
                       </div>
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-100">
                       <span className="text-stone-500 block text-[10px] uppercase font-semibold">Số đăng ký kinh doanh</span>
-                      <span className="font-mono font-bold text-stone-900 text-xs mt-0.5 block">{productData.manufacturer?.businessId || '049189001652'}</span>
+                      <span className="font-mono font-bold text-stone-900 text-xs mt-0.5 block">{productData.manufacturer?.businessId || 'Chưa có dữ liệu'}</span>
                     </div>
 
-                    {productData.manufacturer?.address && (
-                      <div className="flex items-start gap-2 pt-1">
-                        <MapPin className="w-4 h-4 text-[#0f2d22] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-stone-500 block text-[11px]">Địa chỉ liên lạc:</span>
-                          <span className="font-medium text-stone-800">{productData.manufacturer.address}</span>
-                        </div>
+                    <div className="flex items-start gap-2 pt-1">
+                      <MapPin className="w-4 h-4 text-[#0f2d22] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-stone-500 block text-[11px]">Địa chỉ liên lạc:</span>
+                        <span className="font-medium text-stone-800">{productData.manufacturer?.address || 'Chưa có dữ liệu'}</span>
                       </div>
-                    )}
+                    </div>
 
-                    {productData.manufacturer?.phone && (
-                      <div className="flex items-center gap-2 pt-1">
-                        <Phone className="w-4 h-4 text-[#0f2d22] shrink-0" />
-                        <div>
-                          <span className="text-stone-500 block text-[11px]">Di động:</span>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Phone className="w-4 h-4 text-[#0f2d22] shrink-0" />
+                      <div>
+                        <span className="text-stone-500 block text-[11px]">Di động:</span>
+                        {productData.manufacturer?.phone ? (
                           <a
                             href={`tel:${productData.manufacturer.phone.replace(/\s+/g, '')}`}
                             className="font-bold text-[#0f2d22] hover:underline"
                           >
                             {productData.manufacturer.phone}
                           </a>
-                        </div>
+                        ) : (
+                          <span className="font-medium text-stone-800">Chưa có dữ liệu</span>
+                        )}
                       </div>
-                    )}
+                    </div>
 
-                    {productData.manufacturer?.website && (
-                      <div className="flex items-center gap-2 pt-1">
-                        <Globe className="w-4 h-4 text-[#0f2d22] shrink-0" />
-                        <div>
-                          <span className="text-stone-500 block text-[11px]">Website:</span>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Globe className="w-4 h-4 text-[#0f2d22] shrink-0" />
+                      <div>
+                        <span className="text-stone-500 block text-[11px]">Website:</span>
+                        {productData.manufacturer?.website ? (
                           <a
                             href={productData.manufacturer.website.startsWith('http') ? productData.manufacturer.website : `http://${productData.manufacturer.website}`}
                             target="_blank"
@@ -680,9 +678,11 @@ export default function ProductTraceabilityPage({
                             <span>{productData.manufacturer.website}</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
-                        </div>
+                        ) : (
+                          <span className="font-medium text-stone-800">Chưa có dữ liệu</span>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   {productData.manufacturer?.phone && (
@@ -728,7 +728,7 @@ export default function ProductTraceabilityPage({
                       <span>Thành phần công thức:</span>
                     </div>
                     <p className="text-xs sm:text-sm text-stone-800 leading-relaxed font-semibold whitespace-pre-line">
-                      {productData.ingredients || 'Dừa 50%, đường, mạch nha, bánh tráng, mè'}
+                      {productData.ingredients || 'Chưa có dữ liệu'}
                     </p>
                   </div>
 
@@ -738,39 +738,39 @@ export default function ProductTraceabilityPage({
                       <tbody className="divide-y divide-stone-100">
                         <tr className="bg-stone-50/60">
                           <td className="py-3 px-4 font-bold text-stone-600 w-2/5">Tên sản phẩm</td>
-                          <td className="py-3 px-4 font-bold text-stone-900">{productData.name}</td>
+                          <td className="py-3 px-4 font-bold text-stone-900">{productData.name || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr>
                           <td className="py-3 px-4 font-bold text-stone-600">Số TCBSP</td>
-                          <td className="py-3 px-4 font-mono font-bold text-[#0f2d22]">{productData.tcbsp || 'Số TCBSP: 01/NGOHAI/2026'}</td>
+                          <td className="py-3 px-4 font-mono font-bold text-[#0f2d22]">{productData.tcbsp || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr className="bg-stone-50/60">
                           <td className="py-3 px-4 font-bold text-stone-600">Số Tiêu chuẩn</td>
-                          <td className="py-3 px-4 text-stone-700">{productData.standardCode || '—'}</td>
+                          <td className="py-3 px-4 text-stone-700">{productData.standardCode || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr>
                           <td className="py-3 px-4 font-bold text-stone-600">Ngày sản xuất</td>
-                          <td className="py-3 px-4 font-semibold text-stone-900">{productData.manufactureDate || 'Xem trên bao bì'}</td>
+                          <td className="py-3 px-4 font-semibold text-stone-900">{productData.manufactureDate || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr className="bg-stone-50/60">
                           <td className="py-3 px-4 font-bold text-stone-600">Thời hạn sử dụng</td>
-                          <td className="py-3 px-4 font-semibold text-stone-900">{productData.expiry || 'đang cập nhật'}</td>
+                          <td className="py-3 px-4 font-semibold text-stone-900">{productData.expiry || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr>
                           <td className="py-3 px-4 font-bold text-stone-600">Khối lượng tịnh</td>
-                          <td className="py-3 px-4 font-semibold text-stone-900">{productData.netWeight || 'đang cập nhật'}</td>
+                          <td className="py-3 px-4 font-semibold text-stone-900">{productData.netWeight || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr className="bg-stone-50/60">
                           <td className="py-3 px-4 font-bold text-stone-600 align-top">Hướng dẫn sử dụng</td>
-                          <td className="py-3 px-4 text-stone-700 leading-relaxed whitespace-pre-line">{productData.usageGuide || 'xem chi tiết trên bao bì'}</td>
+                          <td className="py-3 px-4 text-stone-700 leading-relaxed whitespace-pre-line">{productData.usageGuide || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr>
                           <td className="py-3 px-4 font-bold text-stone-600 align-top">Bảo quản</td>
-                          <td className="py-3 px-4 text-stone-700 leading-relaxed whitespace-pre-line">{productData.storageGuide || 'Bảo quản ở nơi khô ráo thoáng mát tránh ánh nắng trực tiếp'}</td>
+                          <td className="py-3 px-4 text-stone-700 leading-relaxed whitespace-pre-line">{productData.storageGuide || 'Chưa có dữ liệu'}</td>
                         </tr>
                         <tr className="bg-stone-50/60">
                           <td className="py-3 px-4 font-bold text-stone-600">Cảnh báo</td>
-                          <td className="py-3 px-4 text-stone-700">{productData.warning || '—'}</td>
+                          <td className="py-3 px-4 text-stone-700">{productData.warning || 'Chưa có dữ liệu'}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -784,15 +784,15 @@ export default function ProductTraceabilityPage({
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                       <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-xs">
                         <span className="text-[10px] text-emerald-800 font-semibold block">Tự công bố (TCBSP)</span>
-                        <strong className="text-emerald-950 font-mono">{productData.tcbsp ? productData.tcbsp.replace(/Số\s*TCBSP:\s*/i, '') : '01/NGOHAI/2026'}</strong>
+                        <strong className="text-emerald-950 font-mono">{productData.tcbsp ? productData.tcbsp.replace(/Số\s*TCBSP:\s*/i, '') : 'Chưa có dữ liệu'}</strong>
                       </div>
                       <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-xs">
                         <span className="text-[10px] text-emerald-800 font-semibold block">Số XNCK ATTP</span>
-                        <strong className="text-emerald-950 font-mono">{productData.manufacturer?.attpCode || '11/XNCK-KTHT'}</strong>
+                        <strong className="text-emerald-950 font-mono">{productData.manufacturer?.attpCode || 'Chưa có dữ liệu'}</strong>
                       </div>
                       <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200/80 text-xs">
                         <span className="text-[10px] text-emerald-800 font-semibold block">Số ĐKKD</span>
-                        <strong className="text-emerald-950 font-mono">{productData.manufacturer?.businessId || '049189001652'}</strong>
+                        <strong className="text-emerald-950 font-mono">{productData.manufacturer?.businessId || 'Chưa có dữ liệu'}</strong>
                       </div>
                     </div>
                   </div>
@@ -871,7 +871,7 @@ export default function ProductTraceabilityPage({
 
                   <div className="p-6 rounded-2xl bg-gradient-to-br from-[#F8F7F3] to-stone-100/70 border border-stone-200/80">
                     <p className="text-xs sm:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {productData.story || `Kẹo dừa dẻo Ngọc Hải là đặc sản gia truyền của Hộ Kinh Doanh Đặng Ngọc Hải tại Quế Sơn. Với sự kết hợp tinh tế giữa 50% cơm dừa bánh tẻ béo bùi, vị ngọt thanh của mạch nha nếp và lớp mè rang thơm vàng trên bánh tráng nướng giòn rụm, từng miếng kẹo dẻo thơm mang đậm hương vị truyền thống quê hương xứ Quảng.`}
+                      {productData.story || 'Chưa có dữ liệu'}
                     </p>
                   </div>
                 </div>
@@ -894,23 +894,8 @@ export default function ProductTraceabilityPage({
 
                   <div className="p-6 rounded-2xl bg-[#F8F7F3] border border-stone-200/80 space-y-4">
                     <p className="text-xs sm:text-sm text-stone-800 leading-relaxed whitespace-pre-line font-medium">
-                      {productData.rawMaterials}
+                      {productData.rawMaterials || 'Chưa có dữ liệu'}
                     </p>
-
-                    {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                      <div className="p-3.5 rounded-xl bg-white border border-stone-200 text-xs">
-                        <span className="font-bold text-[#0f2d22] block mb-1">🥥 Cơm dừa tươi 50%</span>
-                        <p className="text-stone-600 text-[11px]">Dừa bánh tẻ độ dẻo và béo thơm tự nhiên</p>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-white border border-stone-200 text-xs">
-                        <span className="font-bold text-[#0f2d22] block mb-1">🌾 Mạch nha nếp &amp; Đường mía</span>
-                        <p className="text-stone-600 text-[11px]">Vị ngọt thanh tao, không gắt, không chất tạo ngọt</p>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-white border border-stone-200 text-xs">
-                        <span className="font-bold text-[#0f2d22] block mb-1">🥢 Mè rang &amp; Bánh tráng nướng</span>
-                        <p className="text-stone-600 text-[11px]">Nướng giòn truyền thống tạo kết cấu giòn dẻo</p>
-                      </div>
-                    </div> */}
                   </div>
                 </div>
               )}
@@ -933,7 +918,7 @@ export default function ProductTraceabilityPage({
 
                     <div className="flex items-center gap-1.5 text-xs text-stone-600 font-medium">
                       <MapPin className="w-4 h-4 text-[#0f2d22]" />
-                      <span>{productData.manufacturer?.address || 'Thôn Thắng Đông, xã Quế Sơn, thành phố Đà Nẵng'}</span>
+                      <span>{productData.manufacturer?.address || 'Chưa có dữ liệu'}</span>
                     </div>
                   </div>
 
@@ -957,7 +942,7 @@ export default function ProductTraceabilityPage({
                     })() : (
                       <div className="text-center p-6 text-stone-500 space-y-2">
                         <MapPin className="w-8 h-8 text-stone-400 mx-auto" />
-                        <p className="text-xs">Chưa có liên kết bản đồ nhúng Google Maps cho sản phẩm này.</p>
+                        <p className="text-xs">Chưa có dữ liệu</p>
                       </div>
                     )}
                   </div>
@@ -979,25 +964,31 @@ export default function ProductTraceabilityPage({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {galleryImages?.map((img, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => setLightboxImg(img)}
-                        className="group relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-50 border border-stone-200 shadow-sm hover:shadow-md transition cursor-zoom-in"
-                      >
-                        <img
-                          src={img}
-                          alt={`${productData.name} ảnh ${idx + 1}`}
-                          className="w-full h-full object-cover  group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1 text-xs font-semibold">
-                          <ZoomIn className="w-4 h-4" />
-                          <span>Xem ảnh lớn</span>
+                  {galleryImages.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {galleryImages.map((img, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setLightboxImg(img)}
+                          className="group relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-50 border border-stone-200 shadow-sm hover:shadow-md transition cursor-zoom-in"
+                        >
+                          <img
+                            src={img}
+                            alt={`${productData.name} ảnh ${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1 text-xs font-semibold">
+                            <ZoomIn className="w-4 h-4" />
+                            <span>Xem ảnh lớn</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 rounded-2xl bg-stone-50 border border-stone-200 text-center text-xs font-medium text-stone-400">
+                      Chưa có dữ liệu
+                    </div>
+                  )}
                 </div>
               )}
 

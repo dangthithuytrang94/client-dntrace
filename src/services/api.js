@@ -411,3 +411,40 @@ export async function deleteQrRequest(id) {
   }
 }
 
+// ==========================================
+// CLOUDINARY IMAGE DELETION HELPERS
+// ==========================================
+export async function deleteCloudinaryImage(urlOrPublicId) {
+  if (!urlOrPublicId) return { success: true };
+  try {
+    const isUrl = typeof urlOrPublicId === 'string' && urlOrPublicId.startsWith('http');
+    const payload = isUrl ? { url: urlOrPublicId } : { public_id: urlOrPublicId };
+
+    const res = await fetch(`${API_BASE}/upload/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn('Lỗi gọi API xoá ảnh Cloudinary:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function deleteMultipleCloudinaryImages(urls) {
+  if (!urls || urls.length === 0) return { success: true };
+  try {
+    const res = await fetch(`${API_BASE}/upload/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls })
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn('Lỗi gọi API xoá danh sách ảnh Cloudinary:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+

@@ -46,6 +46,8 @@ import {
   seedProducts,
   uploadImageToCloudinary,
   uploadMultipleImagesToCloudinary,
+  deleteCloudinaryImage,
+  deleteMultipleCloudinaryImages,
   fetchQrRequests,
   updateQrRequestStatus,
   deleteQrRequest,
@@ -98,17 +100,17 @@ export default function AdminProductManager({
     ingredients: '',
     tcbsp: '',
     standardCode: '',
-    manufactureDate: 'Xem trên bao bì',
-    expiry: 'đang cập nhật',
-    netWeight: 'đang cập nhật',
-    usageGuide: 'xem chi tiết trên bao bì',
-    storageGuide: 'Bảo quản ở nơi khô ráo thoáng mát tránh ánh nắng trực tiếp',
+    manufactureDate: '',
+    expiry: '',
+    netWeight: '',
+    usageGuide: '',
+    storageGuide: '',
     warning: '',
     story: '',
     rawMaterials: '',
     manufacturer: {
       name: '',
-      country: 'Việt Nam',
+      country: '',
       attpCode: '',
       businessId: '',
       address: '',
@@ -172,22 +174,22 @@ export default function AdminProductManager({
       provider: product.provider || 'dntrace.com',
       status: product.status || 'ĐÃ XÁC THỰC THÀNH CÔNG',
       verificationCode: product.verificationCode || '',
-      image: product.image,
+      image: product.image || '',
       gallery: product.gallery || [],
       ingredients: product.ingredients || '',
       tcbsp: product.tcbsp || '',
       standardCode: product.standardCode || '',
-      manufactureDate: product.manufactureDate || 'Xem trên bao bì',
-      expiry: product.expiry || 'đang cập nhật',
-      netWeight: product.netWeight || 'đang cập nhật',
-      usageGuide: product.usageGuide || 'xem chi tiết trên bao bì',
-      storageGuide: product.storageGuide || 'Bảo quản ở nơi khô ráo thoáng mát tránh ánh nắng trực tiếp',
+      manufactureDate: product.manufactureDate || '',
+      expiry: product.expiry || '',
+      netWeight: product.netWeight || '',
+      usageGuide: product.usageGuide || '',
+      storageGuide: product.storageGuide || '',
       warning: product.warning || '',
       story: product.story || '',
       rawMaterials: product.rawMaterials || '',
       manufacturer: {
         name: product.manufacturer?.name || '',
-        country: product.manufacturer?.country || 'Việt Nam',
+        country: product.manufacturer?.country || '',
         attpCode: product.manufacturer?.attpCode || '',
         businessId: product.manufacturer?.businessId || '',
         address: product.manufacturer?.address || '',
@@ -371,6 +373,49 @@ export default function AdminProductManager({
     }));
     setManualGalleryUrl('');
     showToast('Đã thêm ảnh vào thư viện!');
+  };
+
+  // Remove Primary Image and delete from Cloudinary
+  const handleRemovePrimaryImage = async () => {
+    const imgToDelete = formData.image;
+    setFormData(prev => ({ ...prev, image: '' }));
+    if (imgToDelete && imgToDelete.includes('cloudinary.com')) {
+      showToast('🗑️ Đang xoá ảnh khỏi Cloudinary...');
+      await deleteCloudinaryImage(imgToDelete);
+      showToast('✅ Đã xoá ảnh chính khỏi Cloudinary!');
+    } else {
+      showToast('Đã xoá ảnh đại diện');
+    }
+  };
+
+  // Remove Single Gallery Image and delete from Cloudinary
+  const handleRemoveGalleryImage = async (index, imgUrl) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery: (prev.gallery || []).filter((_, idx) => idx !== index)
+    }));
+    if (imgUrl && imgUrl.includes('cloudinary.com')) {
+      showToast('🗑️ Đang xoá ảnh khỏi Cloudinary...');
+      await deleteCloudinaryImage(imgUrl);
+      showToast('✅ Đã xoá ảnh khỏi Cloudinary!');
+    } else {
+      showToast('Đã xoá ảnh khỏi thư viện');
+    }
+  };
+
+  // Remove All Gallery Images and delete from Cloudinary
+  const handleRemoveAllGalleryImages = async () => {
+    const currentGallery = formData.gallery || [];
+    if (currentGallery.length === 0) return;
+    setFormData(prev => ({ ...prev, gallery: [] }));
+    const cloudImages = currentGallery.filter(u => u && u.includes('cloudinary.com'));
+    if (cloudImages.length > 0) {
+      showToast(`🗑️ Đang xoá ${cloudImages.length} ảnh khỏi Cloudinary...`);
+      await deleteMultipleCloudinaryImages(cloudImages);
+      showToast(`✅ Đã xoá ${cloudImages.length} ảnh khỏi Cloudinary!`);
+    } else {
+      showToast('Đã xoá tất cả ảnh trong thư viện');
+    }
   };
 
   // Update QR Request Status
@@ -665,7 +710,7 @@ export default function AdminProductManager({
                           {/* Col 3: Legal & Standards */}
                           <td className="py-4 px-4">
                             <div className="space-y-0.5 text-xs">
-                              <p className="font-bold text-stone-800">{p.tcbsp || 'Chưa công bố'}</p>
+                              <p className="font-bold text-stone-800">{p.tcbsp || 'Chưa có dữ liệu'}</p>
                               {p.manufacturer?.attpCode && (
                                 <p className="text-[11px] text-stone-500">ATTP: {p.manufacturer.attpCode}</p>
                               )}
@@ -676,10 +721,10 @@ export default function AdminProductManager({
                           <td className="py-4 px-4">
                             <div className="max-w-[180px] text-xs">
                               <p className="font-semibold text-stone-900 truncate">
-                                {p.manufacturer?.name || 'Đang cập nhật'}
+                                {p.manufacturer?.name || 'Chưa có dữ liệu'}
                               </p>
                               <p className="text-[11px] text-stone-500 truncate">
-                                {p.manufacturer?.phone || p.manufacturer?.address || '—'}
+                                {p.manufacturer?.phone || p.manufacturer?.address || 'Chưa có dữ liệu'}
                               </p>
                             </div>
                           </td>
@@ -1499,10 +1544,12 @@ export default function AdminProductManager({
                           {formData.image && (
                             <button
                               type="button"
-                              onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
-                              className="px-3 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 text-xs font-bold transition"
+                              onClick={handleRemovePrimaryImage}
+                              className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                              title="Xoá ảnh (Sẽ xoá khỏi Cloudinary nếu là ảnh Cloud)"
                             >
-                              Xoá
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Xoá</span>
                             </button>
                           )}
                         </div>
@@ -1610,8 +1657,8 @@ export default function AdminProductManager({
                           <span>Danh sách ảnh trong thư viện (Bấm ⭐ để chọn làm ảnh chính):</span>
                           <button
                             type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, gallery: [] }))}
-                            className="text-rose-500 hover:underline text-[11px]"
+                            onClick={handleRemoveAllGalleryImages}
+                            className="text-rose-500 hover:text-rose-700 hover:underline text-[11px] cursor-pointer"
                           >
                             Xoá tất cả
                           </button>
@@ -1672,12 +1719,9 @@ export default function AdminProductManager({
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => setFormData(prev => ({
-                                      ...prev,
-                                      gallery: prev.gallery.filter((_, idx) => idx !== i)
-                                    }))}
+                                    onClick={() => handleRemoveGalleryImage(i, imgUrl)}
                                     className="p-1.5 rounded-lg bg-rose-500 text-white text-xs font-bold hover:scale-110 transition cursor-pointer"
-                                    title="Xoá ảnh khỏi thư viện"
+                                    title="Xoá ảnh (Sẽ xoá khỏi Cloudinary nếu là ảnh Cloud)"
                                   >
                                     <X className="w-3.5 h-3.5" />
                                   </button>
