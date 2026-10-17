@@ -61,7 +61,7 @@ export default function HomePage({
         slug.includes(cleanTerm) ||
         mfrName.includes(term)
       );
-    }).slice(0, 6);
+    });
   }, [products, searchTerm]);
 
   // Click outside to collapse search dropdown
@@ -159,54 +159,59 @@ export default function HomePage({
             </button>
           </form>
 
-          {/* LIVE SEARCH AUTOCOMPLETE DROPDOWN */}
+          {/* LIVE SEARCH AUTOCOMPLETE DROPDOWN (Chỉ hiển thị 4 sản phẩm, nếu nhiều hơn sẽ scroll) */}
           {isSearchFocused && searchTerm.trim() && (
-            <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/98 shadow-2xl border border-stone-200 p-2 z-50 text-left max-h-80 overflow-y-auto animate-fade-in">
+            <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/98 shadow-2xl border border-stone-200 p-2 z-50 text-left animate-fade-in backdrop-blur-md">
               {searchResults.length > 0 ? (
-                <div className="space-y-1">
-                  <div className="px-3 py-1 text-[11px] font-bold text-stone-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>Gợi ý ({searchResults.length})</span>
-                    <span className="text-[#0f2d22]">Bấm để xem truy xuất</span>
+                <div>
+                  <div className="px-3 py-1.5 text-[11px] font-bold text-stone-400 uppercase tracking-wider flex items-center justify-between border-b border-stone-100 mb-1">
+                    <span>Gợi ý ({searchResults.length} sản phẩm)</span>
+                    <span className="text-[#0f2d22] font-semibold text-[10px]">
+                      {searchResults.length > 4 ? 'Cuộn xem thêm ↓' : 'Bấm để xem'}
+                    </span>
                   </div>
 
-                  {searchResults.map((product) => (
-                    <div
-                      key={product._id || product.slug}
-                      onClick={() => {
-                        onSelectProduct(product);
-                        setIsSearchFocused(false);
-                      }}
-                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-stone-100 transition cursor-pointer group"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-stone-50 p-1 flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden">
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <Package className="w-5 h-5 text-stone-400" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-xs sm:text-sm font-bold text-stone-900 group-hover:text-[#0f2d22] transition-colors truncate">
-                          {product.name}
-                        </h4>
-                        <div className="flex items-center gap-2 text-[11px] text-stone-500 mt-0.5">
-                          <span className="font-mono bg-stone-100 px-1.5 py-0.5 rounded text-stone-700">
-                            {product.verificationCode || product.tcbsp || 'Mã xác thực'}
-                          </span>
-                          <span className="truncate">
-                            {product.manufacturer?.name || 'Doanh nghiệp'}
-                          </span>
+                  {/* Vùng hiển thị tối đa 4 sản phẩm, vượt quá sẽ có thanh cuộn tinh tế */}
+                  <div className="space-y-1 max-h-[256px] overflow-y-auto pr-1">
+                    {searchResults.map((product) => (
+                      <div
+                        key={product._id || product.slug}
+                        onClick={() => {
+                          onSelectProduct(product);
+                          setIsSearchFocused(false);
+                        }}
+                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-stone-100 transition cursor-pointer group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-stone-50 p-1 flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden">
+                          {product.image ? (
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Package className="w-5 h-5 text-stone-400" />
+                          )}
                         </div>
-                      </div>
 
-                      <ArrowUpRight className="w-4 h-4 text-stone-400 group-hover:text-[#0f2d22] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
-                    </div>
-                  ))}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-stone-900 group-hover:text-[#0f2d22] transition-colors truncate">
+                            {product.name}
+                          </h4>
+                          <div className="flex items-center gap-2 text-[11px] text-stone-500 mt-0.5">
+                            <span className="font-mono bg-stone-100 px-1.5 py-0.5 rounded text-stone-700">
+                              {product.verificationCode || product.tcbsp || 'Mã xác thực'}
+                            </span>
+                            <span className="truncate">
+                              {product.manufacturer?.name || 'Doanh nghiệp'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <ArrowUpRight className="w-4 h-4 text-stone-400 group-hover:text-[#0f2d22] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="p-4 text-center space-y-1">

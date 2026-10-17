@@ -2041,7 +2041,7 @@ export default function AdminProductManager({
                 onClick={handleDeleteProduct}
                 className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer"
               >
-                Đồng Ý Xoá
+                Xoá
               </button>
             </div>
           </div>

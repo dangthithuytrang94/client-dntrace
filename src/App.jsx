@@ -11,71 +11,74 @@ import ProductTraceabilityPage from './components/ProductTraceabilityPage';
 import AdminProductManager from './components/AdminProductManager';
 import AdminLogin from './components/AdminLogin';
 import QrRegistrationModal from './components/QrRegistrationModal';
+import NotFoundPage from './components/NotFoundPage';
 import DNTraceLogo from './components/DNTraceLogo';
 import DNTraceFooter from './components/DNTraceFooter';
 import { fetchApiStatus, isUserLoggedIn, clearLoginSession, slugify } from './services/api';
 
+// Parse and validate route strictly from URL
+const parseUrlRoute = () => {
+  if (typeof window === 'undefined') return { view: 'home', slug: null, invalidPath: null };
+
+  const pathname = window.location.pathname;
+  // Trim leading and trailing slashes
+  const cleanPath = pathname.replace(/^\/+|\/+$/g, '').trim();
+
+  // 1. Home path "/"
+  if (!cleanPath) {
+    const params = new URLSearchParams(window.location.search);
+    const codeParam = params.get('code');
+    if (codeParam) {
+      return { view: 'traceability', slug: codeParam.trim(), invalidPath: null };
+    }
+    return { view: 'home', slug: null, invalidPath: null };
+  }
+
+  const lower = cleanPath.toLowerCase();
+
+  // 2. Strict Admin Route: MUST BE EXACTLY "admin"
+  if (lower === 'admin') {
+    return { view: 'admin', slug: null, invalidPath: null };
+  }
+
+  // 3. Typo / variation of admin (dư chữ hoặc thiếu chữ)
+  // Ví dụ: /adminn, /admi, /adm, /ad, /admins, /administrator, /admin/anything, /myadmin...
+  const isAdminVariation =
+    lower.startsWith('admin/') ||
+    lower.startsWith('adm') ||
+    lower.endsWith('admin') ||
+    lower.includes('admin') ||
+    lower === 'ad';
+
+  if (isAdminVariation) {
+    return { view: 'not-found', slug: null, invalidPath: cleanPath };
+  }
+
+  // 4. Multi-segment paths (products do not have subdirectories like "a/b")
+  if (cleanPath.includes('/')) {
+    return { view: 'not-found', slug: null, invalidPath: cleanPath };
+  }
+
+  // 5. Product slug for traceability
+  return { view: 'traceability', slug: decodeURIComponent(cleanPath).trim(), invalidPath: null };
+};
+
 export default function App() {
-  // Determine initial product slug from browser URL or query string
-  const getInitialProductSlug = () => {
-    if (typeof window !== 'undefined') {
-      // 1. Check query parameter ?code=...
-      const params = new URLSearchParams(window.location.search);
-      const codeParam = params.get('code');
-      if (codeParam) return codeParam.trim();
-
-      // 2. Check pathname /ten-san-pham (ignore admin)
-      const path = window.location.pathname.replace(/^\/+/, '').split('/')[0];
-      const lower = path ? path.toLowerCase() : '';
-      if (lower && lower !== 'admin') {
-        return decodeURIComponent(path).trim();
-      }
-    }
-    return null;
-  };
-
-  // Determine initial view from browser URL
-  const getInitialView = () => {
-    if (typeof window !== 'undefined') {
-      const cleanPath = window.location.pathname.replace(/^\/+/, '').split('/')[0].toLowerCase();
-      if (cleanPath === 'admin') {
-        return 'admin';
-      }
-      const slug = getInitialProductSlug();
-      if (slug) {
-        return 'traceability';
-      }
-    }
-    return 'home';
-  };
-
-  const [currentView, setCurrentView] = useState(getInitialView);
+  const initialRoute = parseUrlRoute();
+  const [currentView, setCurrentView] = useState(initialRoute.view);
   const [isAuthenticated, setIsAuthenticated] = useState(isUserLoggedIn);
-  const [selectedProductId, setSelectedProductId] = useState(getInitialProductSlug);
+  const [selectedProductId, setSelectedProductId] = useState(initialRoute.slug);
+  const [invalidPath, setInvalidPath] = useState(initialRoute.invalidPath);
   const [qrRegistrationOpen, setQrRegistrationOpen] = useState(false);
   const [dbStatus, setDbStatus] = useState(null);
 
   // Sync state with browser URL (popstate for back/forward buttons)
   useEffect(() => {
     const handlePopState = () => {
-      const cleanPath = window.location.pathname.replace(/^\/+/, '').split('/')[0].toLowerCase();
-      if (cleanPath === 'admin') {
-        setCurrentView('admin');
-      } else {
-        const params = new URLSearchParams(window.location.search);
-        const codeParam = params.get('code');
-        const slug = (cleanPath && cleanPath !== 'admin')
-          ? decodeURIComponent(cleanPath).trim()
-          : (codeParam ? codeParam.trim() : null);
-
-        if (slug) {
-          setSelectedProductId(slug);
-          setCurrentView('traceability');
-        } else {
-          setSelectedProductId(null);
-          setCurrentView('home');
-        }
-      }
+      const route = parseUrlRoute();
+      setCurrentView(route.view);
+      setSelectedProductId(route.slug);
+      setInvalidPath(route.invalidPath);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -85,26 +88,36 @@ export default function App() {
   const navigateToHome = () => {
     setCurrentView('home');
     setSelectedProductId(null);
+    setInvalidPath(null);
     window.history.pushState({}, '', '/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Navigate to Admin
+  const navigateToAdmin = () => {
+    setCurrentView('admin');
+    setSelectedProductId(null);
+    setInvalidPath(null);
+    window.history.pushState({}, '', '/admin');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Update browser URL when switching view
   const navigateToView = (viewName) => {
-    setCurrentView(viewName);
     if (viewName === 'admin') {
-      window.history.pushState({}, '', '/admin');
+      navigateToAdmin();
     } else if (viewName === 'home') {
-      setSelectedProductId(null);
-      window.history.pushState({}, '', '/');
+      navigateToHome();
     } else {
+      setCurrentView(viewName);
+      setInvalidPath(null);
       if (selectedProductId) {
         window.history.pushState({}, '', `/${selectedProductId}`);
       } else {
         window.history.pushState({}, '', '/');
       }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Check MongoDB connection status
@@ -201,6 +214,15 @@ export default function App() {
           <HomePage
             onSelectProduct={handleSelectProduct}
             onOpenQrRegister={() => setQrRegistrationOpen(true)}
+            onNavigateToAdmin={() => navigateToView('admin')}
+          />
+        )}
+
+        {/* VIEW 2: 404 NOT FOUND PAGE */}
+        {currentView === 'not-found' && (
+          <NotFoundPage
+            invalidPath={invalidPath}
+            onBackToHome={navigateToHome}
             onNavigateToAdmin={() => navigateToView('admin')}
           />
         )}

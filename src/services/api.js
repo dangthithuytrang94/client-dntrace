@@ -312,7 +312,7 @@ export async function fetchProductById(idOrCodeOrSlug) {
     if (found) {
       return { data: found, source: 'offline_fallback', isOffline: true };
     }
-    return { data: localFallbackProducts[0], source: 'offline_fallback', isOffline: true };
+    return { data: null, source: 'not_found', isOffline: true };
   }
 }
 
