@@ -1,46 +1,36 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Search,
-  QrCode,
-  ShieldCheck,
+  Sparkles,
   ArrowRight,
   X,
-  Sparkles,
-  RefreshCw,
-  Image as ImageIcon,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight
+  Package,
+  Lock,
+  ArrowUpRight
 } from 'lucide-react';
 import { fetchProducts, slugify } from '../services/api';
 
 export default function HomePage({
   onSelectProduct,
-  onNavigateToAllProducts,
-  onOpenQrRegister
+  onOpenQrRegister,
+  onNavigateToAdmin
 }) {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef(null);
 
-  // Mobile Slick Slider State
-  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-
+  // Load products from API on mount
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
-      setLoading(true);
       try {
         const res = await fetchProducts();
         if (isMounted) {
           setProducts(res.data || []);
         }
       } catch (err) {
-        console.error('Lỗi khi tải danh sách sản phẩm trang chủ:', err);
-      } finally {
-        if (isMounted) setLoading(false);
+        console.error('Lỗi khi tải danh sách sản phẩm:', err);
       }
     }
     loadData();
@@ -49,9 +39,9 @@ export default function HomePage({
     };
   }, []);
 
-  // Filter products by Name or Code/TCBSP/Slug - searches across ALL database products!
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm.trim()) return products;
+  // Filter products live based on search term
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim()) return [];
     const term = searchTerm.toLowerCase().trim();
     const cleanTerm = slugify(term);
 
@@ -71,427 +61,185 @@ export default function HomePage({
         slug.includes(cleanTerm) ||
         mfrName.includes(term)
       );
-    });
+    }).slice(0, 6);
   }, [products, searchTerm]);
 
-  // Quy tắc: Ở trang chủ hiển thị tối đa 8 sản phẩm. Khi search thì tìm và hiển thị toàn bộ kết quả từ database!
-  const displayedProducts = useMemo(() => {
-    if (searchTerm.trim()) {
-      return filteredProducts;
-    }
-    return products.slice(0, 8);
-  }, [products, filteredProducts, searchTerm]);
-
-  // Reset slide index if search results change
+  // Click outside to collapse search dropdown
   useEffect(() => {
-    if (activeSlideIndex >= displayedProducts.length && displayedProducts.length > 0) {
-      setActiveSlideIndex(0);
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
     }
-  }, [displayedProducts.length, activeSlideIndex]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const prevSlide = () => {
-    if (displayedProducts.length <= 1) return;
-    setActiveSlideIndex((prev) => (prev === 0 ? displayedProducts.length - 1 : prev - 1));
-  };
-
-  const nextSlide = () => {
-    if (displayedProducts.length <= 1) return;
-    setActiveSlideIndex((prev) => (prev === displayedProducts.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 45;
-    const isRightSwipe = distance < -45;
-    if (isLeftSwipe) {
-      nextSlide();
-    } else if (isRightSwipe) {
-      prevSlide();
-    }
-  };
-
+  // Handle Search Submission
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (displayedProducts.length === 1) {
-      onSelectProduct(displayedProducts[0]);
+    if (e) e.preventDefault();
+    if (!searchTerm.trim()) return;
+
+    if (searchResults.length === 1) {
+      onSelectProduct(searchResults[0]);
+    } else {
+      setIsSearchFocused(true);
     }
   };
 
   return (
-    <div className="flex-1 bg-[#F8F7F3] py-6 sm:py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
+    <div
+      className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat select-none"
+      style={{ backgroundImage: "url('/assets/bg-clean.png')" }}
+    >
+      {/* Subtle backdrop-blur to softly diffuse the background and make the logo & search box pop */}
+      <div className="absolute inset-0 backdrop-blur-[2.5px] bg-black/15 pointer-events-none" />
 
-        {/* HERO SECTION: Logo + Title + Description */}
-        <div className="flex flex-col items-center text-center space-y-4 pt-1 sm:pt-4">
-          <div className="bg-green-800 p-3.5 sm:p-5 rounded-3xl shadow-sm border border-stone-200/80 inline-flex items-center justify-center">
+      {/* Top subtle admin corner icon */}
+      
+
+      {/* CENTER HERO: LOGO + 1 Ô SEARCH + 1 BUTTON ĐĂNG KÝ TRUY XUẤT */}
+      <main className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 flex flex-col items-center text-center z-10 my-auto">
+        
+        {/* LOGO WITH FROSTED GLASS HIGHLIGHT */}
+        <div className="mb-6 sm:mb-8 transition-transform duration-300 hover:scale-105">
+          <div className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-3xl bg-white/80 backdrop-blur-md border border-white/90 shadow-xl inline-flex items-center justify-center">
             <img
               src="/assets/dntrace_logo_header.png"
               alt="DNTrace Logo"
-              className="h-14 sm:h-20 md:h-24 w-auto object-contain"
+              className="h-14 sm:h-20 md:h-24 w-auto object-contain filter drop-shadow-sm"
               onError={(e) => {
-                e.target.src = '/assets/dntrace_logo.jpg';
+                e.target.src = '/assets/logohelmet.png';
               }}
             />
           </div>
-
-          <div className="max-w-3xl space-y-2.5">
-           
-
-            <h1 className="text-xl sm:text-3xl md:text-4xl font-black text-stone-900 tracking-tight leading-tight">
-              Tra Cứu &amp; Truy Xuất Thông Tin Sản Phẩm
-            </h1>
-
-          
-          </div>
-
-          {/* SEARCH BAR INPUT: Search by Name or Code */}
-          <div className="w-full max-w-2xl pt-1">
-            <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-stone-400 absolute left-3.5 sm:left-4 pointer-events-none" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Nhập tên sản phẩm, mã truy xuất hoặc số TCBSP..."
-                className="w-full pl-10 sm:pl-12 pr-28 sm:pr-32 py-3 sm:py-3.5 rounded-2xl bg-white border-2 border-stone-200 focus:border-[#0f2d22] focus:ring-4 focus:ring-[#84CC16]/20 text-stone-900 text-xs sm:text-sm placeholder:text-stone-400 shadow-sm transition outline-none"
-              />
-
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-24 sm:right-28 p-1 text-stone-400 hover:text-stone-600 transition"
-                  aria-label="Xoá từ khóa"
-                >
-                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-              )}
-
-              <button
-                type="submit"
-                className="absolute right-1.5 sm:right-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#0f2d22] hover:bg-[#194535] active:scale-95 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer shadow-sm"
-              >
-                <span>Tra cứu</span>
-                <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              </button>
-            </form>
-
-            <div className="flex items-center justify-between mt-2 px-2 text-[11px] sm:text-xs text-stone-500">
-              <span>
-                {searchTerm ? (
-                  <>Tìm thấy <strong className="text-stone-900">{displayedProducts.length}</strong> kết quả từ toàn bộ cơ sở dữ liệu</>
-                ) : (
-                  <>Hiển thị <strong className="text-stone-900">{displayedProducts.length}</strong> / {products.length} sản phẩm</>
-                )}
-              </span>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="text-[#0f2d22] font-semibold hover:underline cursor-pointer"
-                >
-                  Xoá bộ lọc
-                </button>
-              )}
-            </div>
-          </div>
         </div>
 
-        {/* PRODUCT CARDS SECTION */}
-        <div className="space-y-5">
-          <div className="flex items-center justify-between border-b border-stone-200 pb-3 flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-[#84CC16]" />
-              <h2 className="text-base sm:text-xl font-black text-stone-900 uppercase tracking-tight">
-                Danh Sách Sản Phẩm 
-              </h2>
+        {/* 1 Ô SEARCH */}
+        <div ref={searchContainerRef} className="w-full max-w-xl relative">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative flex items-center bg-white/95 hover:bg-white focus-within:bg-white rounded-full shadow-2xl border-2 border-stone-200/90 focus-within:border-[#0f2d22] focus-within:ring-4 focus-within:ring-[#84CC16]/25 transition-all duration-300 backdrop-blur-md"
+          >
+            <div className="pl-4 sm:pl-5 pointer-events-none text-[#0f2d22]">
+              <Search className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
 
-            <div className="flex items-center gap-2">
-              {onNavigateToAllProducts && (
-                <button
-                  onClick={onNavigateToAllProducts}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-100 text-[#0f2d22] text-xs font-bold transition border border-stone-200 cursor-pointer shadow-2xs"
-                >
-                  <span>Xem tất cả ({products.length})</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#0f2d22]" />
-                </button>
-              )}
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              placeholder="Nhập tên sản phẩm hoặc mã truy xuất..."
+              className="w-full py-3.5 sm:py-4 pl-3 sm:pl-4 pr-24 sm:pr-28 text-stone-900 placeholder:text-stone-400 text-sm sm:text-base bg-transparent outline-none font-medium"
+            />
 
-              {onOpenQrRegister && (
-                <button
-                  onClick={onOpenQrRegister}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#84CC16]/20 hover:bg-[#84CC16]/30 text-[#0f2d22] text-xs font-bold transition border border-[#84CC16]/40 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Cấp mã mới</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Loading State */}
-          {loading && (
-            <div className="py-14 text-center space-y-3">
-              <RefreshCw className="w-8 h-8 text-[#0f2d22] animate-spin mx-auto" />
-              <p className="text-xs sm:text-sm font-semibold text-stone-600">
-                Đang tải dữ liệu sản phẩm từ hệ thống dntrace.com...
-              </p>
-            </div>
-          )}
-
-          {/* Empty Search Result State */}
-          {!loading && displayedProducts.length === 0 && (
-            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-stone-200 text-center space-y-4 max-w-md mx-auto shadow-sm">
-              <div className="w-12 h-12 rounded-2xl bg-stone-100 text-stone-400 flex items-center justify-center mx-auto">
-                <Search className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-bold text-stone-900 text-base">Không tìm thấy sản phẩm</h3>
-                <p className="text-xs text-stone-500 leading-relaxed">
-                  {searchTerm
-                    ? `Không có kết quả nào khớp với từ khóa "${searchTerm}". Vui lòng thử tìm với tên hoặc mã khác.`
-                    : 'Chưa có dữ liệu'}
-                </p>
-              </div>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="px-4 py-2 rounded-xl bg-[#0f2d22] text-white text-xs font-bold hover:bg-[#194535] transition cursor-pointer"
-                >
-                  Xem tất cả sản phẩm
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* VIEW ON MOBILE: SLICK SLIDER (chỉ hiển thị trên Mobile < sm) */}
-          {!loading && displayedProducts.length > 0 && (
-            <div className="block sm:hidden space-y-3">
-              {(() => {
-                const currentProduct = displayedProducts[activeSlideIndex] || displayedProducts[0];
-                const productCode = currentProduct.verificationCode || currentProduct.tcbsp || currentProduct._id || 'Chưa có dữ liệu';
-
-                return (
-                  <div className="space-y-3">
-                    {/* Slider Card with touch swipe & 2 Left/Right Buttons */}
-                    <div className="relative group">
-                      <div
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
-                        onClick={() => onSelectProduct(currentProduct)}
-                        className="bg-white rounded-3xl p-5 border border-stone-200 shadow-sm active:scale-[0.99] transition-transform duration-200 flex flex-col cursor-pointer select-none"
-                      >
-                        {/* 1. Hình ảnh sản phẩm (tuân thủ quy tắc: không có thì hiển thị "Chưa có dữ liệu") */}
-                        <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-50 border border-stone-100 flex items-center justify-center mb-4">
-                          {currentProduct.image ? (
-                            <img
-                              src={currentProduct.image}
-                              alt={currentProduct.name}
-                              className="w-full h-full object-contain p-2"
-                            />
-                          ) : (
-                            <div className="flex flex-col items-center justify-center p-4 text-stone-400 space-y-1.5">
-                              <ImageIcon className="w-8 h-8 text-stone-300" />
-                              <span className="text-xs font-semibold">Chưa có dữ liệu</span>
-                            </div>
-                          )}
-
-                          {/* Index Counter Badge */}
-                          <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-black/65 text-white text-[11px] font-bold backdrop-blur-xs shadow-xs">
-                            {activeSlideIndex + 1} / {displayedProducts.length}
-                          </div>
-                        </div>
-
-                        {/* 2. Tên sản phẩm */}
-                        <h3 className="font-bold text-stone-900 text-base line-clamp-2 leading-snug mb-2">
-                          {currentProduct.name || 'Chưa có dữ liệu'}
-                        </h3>
-
-                        {/* 3. Mã sản phẩm / Số TCBSP */}
-                        <div className="space-y-1.5 mb-4 text-xs">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-stone-500 text-[11px] font-medium shrink-0">Mã SP:</span>
-                            <span className="font-mono font-bold text-stone-800 bg-stone-100 px-2 py-0.5 rounded border border-stone-200 truncate text-[11px]">
-                              {productCode}
-                            </span>
-                          </div>
-
-                          <div className="text-[11px] text-stone-500 truncate">
-                            Đơn vị:{' '}
-                            <span className="font-medium text-stone-800">
-                              {currentProduct.manufacturer?.name || 'Chưa có dữ liệu'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Bottom Action CTA */}
-                        <div className="mt-auto pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-[#0f2d22]">
-                          <span>Truy xuất thông tin</span>
-                          <div className="w-8 h-8 rounded-full bg-[#84CC16] text-[#0f2d22] flex items-center justify-center shadow-xs">
-                            <ArrowRight className="w-4 h-4" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2 Navigation Buttons: Trái & Phải overlay */}
-                      {displayedProducts.length > 1 && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              prevSlide();
-                            }}
-                            className="absolute left-2 top-1/3 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white flex items-center justify-center shadow-lg transition backdrop-blur-xs z-10 cursor-pointer"
-                            aria-label="Sản phẩm trước"
-                          >
-                            <ChevronLeft className="w-5 h-5" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              nextSlide();
-                            }}
-                            className="absolute right-2 top-1/3 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white flex items-center justify-center shadow-lg transition backdrop-blur-xs z-10 cursor-pointer"
-                            aria-label="Sản phẩm tiếp theo"
-                          >
-                            <ChevronRight className="w-5 h-5" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-
-                    {/* 2 Nút bấm điều hướng Dưới & Dots Pagination */}
-                    {displayedProducts.length > 1 && (
-                      <div className="flex items-center justify-between gap-3 pt-1">
-                       
-
-                        {/* Dots */}
-                        <div className="flex items-center justify-center gap-1.5 overflow-x-auto w-full px-1 py-1 no-scrollbar">
-                          {displayedProducts.map((_, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => setActiveSlideIndex(idx)}
-                              className={`h-2 rounded-full transition-all duration-300 shrink-0 ${
-                                idx === activeSlideIndex ? 'w-5 bg-[#0f2d22]' : 'w-2 bg-stone-300'
-                              }`}
-                              aria-label={`Sản phẩm ${idx + 1}`}
-                            />
-                          ))}
-                        </div>
-
-                        
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* VIEW ON DESKTOP: RESPONSIVE GRID (hiển thị trên màn hình sm trở lên) */}
-          {!loading && displayedProducts.length > 0 && (
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {displayedProducts.map((product) => {
-                const productCode = product.verificationCode || product.tcbsp || product._id || 'Chưa có dữ liệu';
-
-                return (
-                  <div
-                    key={product._id || product.slug}
-                    onClick={() => onSelectProduct(product)}
-                    className="group bg-white rounded-3xl p-5 border border-stone-200 shadow-sm hover:shadow-xl hover:border-[#84CC16] transition-all duration-300 flex flex-col cursor-pointer select-none"
-                  >
-                    {/* 1. Hình ảnh sản phẩm (tuân thủ quy tắc: không có thì hiển thị "Chưa có dữ liệu") */}
-                    <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-50 border border-stone-100 flex items-center justify-center mb-4">
-                      {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-4 text-stone-400 space-y-1.5">
-                          <ImageIcon className="w-8 h-8 text-stone-300" />
-                          <span className="text-xs font-semibold">Chưa có dữ liệu</span>
-                        </div>
-                      )}
-
-                      {/* Verification Badge */}
-                    
-                    </div>
-
-                    {/* 2. Tên sản phẩm */}
-                    <h3 className="font-bold text-stone-900 text-base line-clamp-2 group-hover:text-[#0f2d22] transition-colors leading-snug mb-2.5">
-                      {product.name || 'Chưa có dữ liệu'}
-                    </h3>
-
-                    {/* 3. Mã sản phẩm / Số TCBSP */}
-                    <div className="space-y-1.5 mb-4 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-stone-500 text-[11px] font-medium shrink-0">Mã SP:</span>
-                        <span className="font-mono font-bold text-stone-800 bg-stone-100 px-2 py-0.5 rounded border border-stone-200 truncate text-[11px]">
-                          {productCode}
-                        </span>
-                      </div>
-
-                      <div className="text-[11px] text-stone-500 truncate">
-                        Đơn vị:{' '}
-                        <span className="font-medium text-stone-800">
-                          {product.manufacturer?.name || 'Chưa có dữ liệu'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bottom Action CTA */}
-                    <div className="mt-auto pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-[#0f2d22]">
-                      <span className="group-hover:translate-x-0.5 transition-transform">
-                        Truy xuất thông tin
-                      </span>
-                      <div className="w-8 h-8 rounded-full bg-stone-100 group-hover:bg-[#84CC16] text-[#0f2d22] flex items-center justify-center transition-colors">
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </div>
-
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* NÚT XEM THÊM: Hiển thị ở cuối danh sách sản phẩm trên trang chủ */}
-          {!loading && !searchTerm && onNavigateToAllProducts && (
-            <div className="pt-4 text-center">
+            {/* Clear button */}
+            {searchTerm && (
               <button
                 type="button"
-                onClick={onNavigateToAllProducts}
-                className="px-6 py-3 rounded-2xl bg-[#0f2d22] hover:bg-[#164332] active:scale-95 text-white text-xs sm:text-sm font-bold shadow-md transition-all inline-flex items-center gap-2 cursor-pointer"
+                onClick={() => {
+                  setSearchTerm('');
+                  setIsSearchFocused(false);
+                }}
+                className="absolute right-20 sm:right-24 p-1 text-stone-400 hover:text-stone-700 transition cursor-pointer"
+                title="Xóa từ khóa"
               >
-                <span>
-                  {products.length > 8 ? `Xem thêm (${products.length - 8} sản phẩm khác)` : `Xem tất cả ${products.length} sản phẩm`}
-                </span>
-                <ArrowRight className="w-4 h-4 text-[#84CC16]" />
+                <X className="w-4 h-4" />
               </button>
+            )}
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              className="absolute right-1.5 sm:right-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#0f2d22] hover:bg-[#1a4a39] active:scale-95 text-white font-bold text-xs sm:text-sm transition-all flex items-center gap-1 shadow-md cursor-pointer"
+            >
+              <span>Tìm</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#84CC16]" />
+            </button>
+          </form>
+
+          {/* LIVE SEARCH AUTOCOMPLETE DROPDOWN */}
+          {isSearchFocused && searchTerm.trim() && (
+            <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/98 shadow-2xl border border-stone-200 p-2 z-50 text-left max-h-80 overflow-y-auto animate-fade-in">
+              {searchResults.length > 0 ? (
+                <div className="space-y-1">
+                  <div className="px-3 py-1 text-[11px] font-bold text-stone-400 uppercase tracking-wider flex items-center justify-between">
+                    <span>Gợi ý ({searchResults.length})</span>
+                    <span className="text-[#0f2d22]">Bấm để xem truy xuất</span>
+                  </div>
+
+                  {searchResults.map((product) => (
+                    <div
+                      key={product._id || product.slug}
+                      onClick={() => {
+                        onSelectProduct(product);
+                        setIsSearchFocused(false);
+                      }}
+                      className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-stone-100 transition cursor-pointer group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-stone-50 p-1 flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <Package className="w-5 h-5 text-stone-400" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs sm:text-sm font-bold text-stone-900 group-hover:text-[#0f2d22] transition-colors truncate">
+                          {product.name}
+                        </h4>
+                        <div className="flex items-center gap-2 text-[11px] text-stone-500 mt-0.5">
+                          <span className="font-mono bg-stone-100 px-1.5 py-0.5 rounded text-stone-700">
+                            {product.verificationCode || product.tcbsp || 'Mã xác thực'}
+                          </span>
+                          <span className="truncate">
+                            {product.manufacturer?.name || 'Doanh nghiệp'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <ArrowUpRight className="w-4 h-4 text-stone-400 group-hover:text-[#0f2d22] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-center space-y-1">
+                  <p className="text-xs font-bold text-stone-700">
+                    Không tìm thấy sản phẩm khớp với "{searchTerm}"
+                  </p>
+                  <p className="text-[11px] text-stone-400">
+                    Vui lòng kiểm tra lại chính tả hoặc mã số xác thực.
+                  </p>
+                </div>
+              )}
             </div>
           )}
-
         </div>
 
-      </div>
+        {/* 1 BUTTON ĐĂNG KÝ TRUY XUẤT */}
+        <div className="mt-5 sm:mt-6">
+          <button
+            type="button"
+            onClick={onOpenQrRegister}
+            className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[#0f2d22] hover:bg-[#184535] active:scale-95 text-white font-bold text-xs sm:text-sm shadow-xl hover:shadow-2xl border border-[#84CC16]/60 transition-all flex items-center gap-2 cursor-pointer group"
+          >
+            <Sparkles className="w-4 h-4 text-[#84CC16] group-hover:rotate-12 transition-transform" />
+            <span>Đăng Ký Truy Xuất</span>
+          </button>
+        </div>
+
+      </main>
+
+      {/* MINIMAL FOOTER */}
+      <footer className="w-full py-3 text-center text-[11px] sm:text-xs text-stone-500 font-medium z-10">
+        <span>© 2026 DNTRACE.COM — Hệ Thống Truy Xuất Thông Tin</span>
+      </footer>
     </div>
   );
 }

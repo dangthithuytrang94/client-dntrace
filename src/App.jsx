@@ -7,7 +7,6 @@ import {
   Search
 } from 'lucide-react';
 import HomePage from './components/HomePage';
-import AllProductsPage from './components/AllProductsPage';
 import ProductTraceabilityPage from './components/ProductTraceabilityPage';
 import AdminProductManager from './components/AdminProductManager';
 import AdminLogin from './components/AdminLogin';
@@ -25,10 +24,10 @@ export default function App() {
       const codeParam = params.get('code');
       if (codeParam) return codeParam.trim();
 
-      // 2. Check pathname /ten-san-pham (ignore admin, san-pham, tat-ca-san-pham)
+      // 2. Check pathname /ten-san-pham (ignore admin)
       const path = window.location.pathname.replace(/^\/+/, '').split('/')[0];
       const lower = path ? path.toLowerCase() : '';
-      if (lower && lower !== 'admin' && lower !== 'san-pham' && lower !== 'tat-ca-san-pham') {
+      if (lower && lower !== 'admin') {
         return decodeURIComponent(path).trim();
       }
     }
@@ -41,9 +40,6 @@ export default function App() {
       const cleanPath = window.location.pathname.replace(/^\/+/, '').split('/')[0].toLowerCase();
       if (cleanPath === 'admin') {
         return 'admin';
-      }
-      if (cleanPath === 'san-pham' || cleanPath === 'tat-ca-san-pham') {
-        return 'all-products';
       }
       const slug = getInitialProductSlug();
       if (slug) {
@@ -65,9 +61,6 @@ export default function App() {
       const cleanPath = window.location.pathname.replace(/^\/+/, '').split('/')[0].toLowerCase();
       if (cleanPath === 'admin') {
         setCurrentView('admin');
-      } else if (cleanPath === 'san-pham' || cleanPath === 'tat-ca-san-pham') {
-        setSelectedProductId(null);
-        setCurrentView('all-products');
       } else {
         const params = new URLSearchParams(window.location.search);
         const codeParam = params.get('code');
@@ -96,14 +89,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Navigate to All Products Page
-  const navigateToAllProducts = () => {
-    setCurrentView('all-products');
-    setSelectedProductId(null);
-    window.history.pushState({}, '', '/san-pham');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   // Update browser URL when switching view
   const navigateToView = (viewName) => {
     setCurrentView(viewName);
@@ -112,9 +97,6 @@ export default function App() {
     } else if (viewName === 'home') {
       setSelectedProductId(null);
       window.history.pushState({}, '', '/');
-    } else if (viewName === 'all-products') {
-      setSelectedProductId(null);
-      window.history.pushState({}, '', '/san-pham');
     } else {
       if (selectedProductId) {
         window.history.pushState({}, '', `/${selectedProductId}`);
@@ -162,8 +144,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F8F7F3] text-[#19241F] flex flex-col selection:bg-[#84CC16]/30 selection:text-[#0f2d22]">
 
-      {/* Top Application Header - Shown on Home, All Products & Traceability */}
-      {(currentView === 'home' || currentView === 'traceability' || currentView === 'all-products') && (
+      {/* Top Application Header - Shown on Traceability */}
+      {currentView === 'traceability' && (
         <header className="sticky top-0 z-40 bg-[#0f2d22] text-white shadow-md border-b border-[#1C4638]">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-13 sm:h-16 md:h-18">
@@ -180,34 +162,22 @@ export default function App() {
               {/* Navigation Actions */}
               <div className="flex items-center gap-1.5 sm:gap-3">
 
-                {/* Return Home Button (When in Traceability or All-Products page) */}
-                {(currentView === 'traceability' || currentView === 'all-products') && (
-                  <button
-                    onClick={navigateToHome}
-                    className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-stone-200 text-[11px] sm:text-xs font-bold border border-white/10 transition cursor-pointer"
-                    title="Về Trang Chủ"
-                  >
-                    <Home className="w-3.5 h-3.5 text-[#84CC16]" />
-                    <span className="hidden xs:inline">Trang Chủ</span>
-                  </button>
-                )}
+                {/* Return Home Button */}
+                <button
+                  onClick={navigateToHome}
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-stone-200 text-[11px] sm:text-xs font-bold border border-white/10 transition cursor-pointer"
+                  title="Về Trang Chủ"
+                >
+                  <Home className="w-3.5 h-3.5 text-[#84CC16]" />
+                  <span className="hidden xs:inline">Trang Chủ</span>
+                </button>
 
-                {/* View Status indicator */}
-                {currentView === 'all-products' && (
-                  <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 text-stone-200 text-xs font-bold border border-white/10">
-                    <Search className="w-3.5 h-3.5 text-[#84CC16]" />
-                    <span>Tất Cả Sản Phẩm</span>
-                  </div>
-                )}
+                <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 text-stone-200 text-xs font-bold border border-white/10">
+                  <QrCode className="w-3.5 h-3.5 text-[#84CC16]" />
+                  <span>Trang Truy Xuất</span>
+                </div>
 
-                {currentView === 'traceability' && (
-                  <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 text-stone-200 text-xs font-bold border border-white/10">
-                    <QrCode className="w-3.5 h-3.5 text-[#84CC16]" />
-                    <span>Trang Truy Xuất</span>
-                  </div>
-                )}
-
-                {/* Đăng ký cấp mã QR CTA (Gọn gàng trên Mobile) */}
+                {/* Đăng ký cấp mã QR CTA */}
                 <button
                   onClick={() => setQrRegistrationOpen(true)}
                   className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-[#84CC16] hover:bg-[#74B843] active:scale-95 text-[#0f2d22] text-[11px] sm:text-xs font-black shadow-sm transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
@@ -228,34 +198,11 @@ export default function App() {
       <main className="flex-1 flex flex-col">
         {/* VIEW 1: HOME PAGE */}
         {currentView === 'home' && (
-          <>
-            <HomePage
-              onSelectProduct={handleSelectProduct}
-              onNavigateToAllProducts={navigateToAllProducts}
-              onOpenQrRegister={() => setQrRegistrationOpen(true)}
-            />
-            {/* Footer with dntrace.com branding */}
-            <DNTraceFooter
-              onOpenQrRegister={() => setQrRegistrationOpen(true)}
-              onNavigateToAdmin={() => navigateToView('admin')}
-            />
-          </>
-        )}
-
-        {/* VIEW 2: ALL PRODUCTS PAGE */}
-        {currentView === 'all-products' && (
-          <>
-            <AllProductsPage
-              onSelectProduct={handleSelectProduct}
-              onBackToHome={navigateToHome}
-              onOpenQrRegister={() => setQrRegistrationOpen(true)}
-            />
-            {/* Footer with dntrace.com branding */}
-            <DNTraceFooter
-              onOpenQrRegister={() => setQrRegistrationOpen(true)}
-              onNavigateToAdmin={() => navigateToView('admin')}
-            />
-          </>
+          <HomePage
+            onSelectProduct={handleSelectProduct}
+            onOpenQrRegister={() => setQrRegistrationOpen(true)}
+            onNavigateToAdmin={() => navigateToView('admin')}
+          />
         )}
 
         {/* VIEW 3: PRODUCT TRACEABILITY DETAIL PAGE */}

@@ -19,7 +19,6 @@ import {
   Heart,
   Settings,
   RefreshCw,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
@@ -213,7 +212,6 @@ export default function ProductTraceabilityPage({
   const [loading, setLoading] = useState(true);
   const [productData, setProductData] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
-  const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);
 
   // Load product data from API
@@ -352,47 +350,10 @@ export default function ProductTraceabilityPage({
               </button>
             )}
 
-            <div className="relative inline-block">
-              <button
-                onClick={() => setShowProductDropdown(!showProductDropdown)}
-                className="inline-flex items-center gap-2 text-xs font-bold text-stone-800 px-3.5 py-2 rounded-xl bg-white border border-stone-200 shadow-sm hover:border-[#0f2d22] transition cursor-pointer"
-              >
-                <QrCode className="w-4 h-4 text-[#84CC16]" />
-                <span className="truncate max-w-[200px] sm:max-w-xs">{productData.name}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
-              </button>
-
-              {showProductDropdown && (
-                <div className="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-stone-200 p-2 z-30">
-                  <div className="text-[10px] font-bold text-stone-400 px-3 py-1.5 uppercase">
-                    Chọn sản phẩm tra cứu ({allProducts.length})
-                  </div>
-                  {allProducts.map((p) => (
-                    <button
-                      key={p._id || p.verificationCode}
-                      onClick={() => {
-                        setProductData(p);
-                        setShowProductDropdown(false);
-                        const slug = p.slug || slugify(p.name);
-                        window.history.pushState({}, '', `/${slug}`);
-                        if (onProductChange) {
-                          onProductChange(p);
-                        }
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition cursor-pointer ${
-                        p.verificationCode === productData.verificationCode
-                          ? 'bg-[#0f2d22]/10 text-[#0f2d22] font-bold'
-                          : 'hover:bg-stone-100 text-stone-700'
-                      }`}
-                    >
-                      <span className="truncate pr-2">{p.name}</span>
-                      {p.verificationCode === productData.verificationCode && (
-                        <Check className="w-3.5 h-3.5 text-[#0f2d22] shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* Product Name Display */}
+            <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-stone-900 px-3.5 py-2 rounded-xl bg-white border border-stone-200 shadow-xs">
+              <QrCode className="w-4 h-4 text-[#84CC16]" />
+              <span className="truncate max-w-[220px] sm:max-w-md">{productData.name}</span>
             </div>
 
             <div className="hidden md:inline-flex items-center gap-1.5 text-xs text-stone-500 font-medium bg-stone-100/80 px-2 py-1 rounded-lg border border-stone-200/60">
@@ -1055,7 +1016,7 @@ export default function ProductTraceabilityPage({
                       <h3 className="text-lg font-black text-stone-900 uppercase tracking-tight">
                         NGUYÊN LIỆU ĐẦU VÀO
                       </h3>
-                      <p className="text-xs text-stone-500">Minh bạch nguồn gốc xuất xứ nguyên liệu sạch</p>
+                      <p className="text-xs text-stone-500">Minh bạch thông tin xuất xứ nguyên liệu sạch</p>
                     </div>
                   </div>
 
