@@ -119,7 +119,7 @@ export default function HomePage({
         <div ref={searchContainerRef} className="w-full max-w-xl relative">
           <form
             onSubmit={handleSearchSubmit}
-            className="relative flex items-center bg-white/95 hover:bg-white focus-within:bg-white rounded-full shadow-2xl border-2 border-stone-200/90 focus-within:border-[#0f2d22] focus-within:ring-4 focus-within:ring-[#84CC16]/25 transition-all duration-300 backdrop-blur-md"
+            className="relative flex items-center bg-white rounded-full shadow-2xl border-2 border-stone-200/90 focus-within:border-[#0f2d22] transition-colors duration-150 backdrop-blur-md"
           >
             <div className="pl-4 sm:pl-5 pointer-events-none text-[#0f2d22]">
               <Search className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -131,7 +131,7 @@ export default function HomePage({
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               placeholder="Nhập tên sản phẩm hoặc mã truy xuất..."
-              className="w-full py-3.5 sm:py-4 pl-3 sm:pl-4 pr-24 sm:pr-28 text-stone-900 placeholder:text-stone-400 text-sm sm:text-base bg-transparent outline-none font-medium"
+              className="w-full py-3.5 sm:py-4 pl-3 sm:pl-4 pr-24 sm:pr-28 text-stone-900 placeholder:text-stone-400 text-base bg-transparent outline-none font-medium"
             />
 
             {/* Clear button */}
