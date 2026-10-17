@@ -51,7 +51,9 @@ import {
   fetchQrRequests,
   updateQrRequestStatus,
   deleteQrRequest,
-  slugify
+  slugify,
+  checkFileLimit,
+  MAX_IMAGE_SIZE_KB
 } from '../services/api';
 import DNTraceLogo from './DNTraceLogo';
 
@@ -297,8 +299,19 @@ export default function AdminProductManager({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const check = checkFileLimit(file);
+    if (!check.valid) {
+      alert(
+        `⚠️ CẢNH BÁO DUNG LƯỢNG:\n\n` +
+        `Ảnh "${check.fileName}" có kích thước ${check.sizeKb.toLocaleString()} KB (vượt quá mức cho phép ${check.limitKb.toLocaleString()} KB).\n` +
+        `Vui lòng chọn ảnh nhỏ hơn để đảm bảo tải lên nhanh chóng và ổn định!`
+      );
+      e.target.value = '';
+      return;
+    }
+
     setUploadingImage(true);
-    setUploadProgressText('☁️ Đang tải ảnh chính lên Cloudinary...');
+    setUploadProgressText('☁️ Đang tối ưu dung lượng và tải ảnh chính lên Cloudinary...');
     try {
       const res = await uploadImageToCloudinary(file);
       setFormData(prev => ({ ...prev, image: res.url }));
@@ -323,26 +336,54 @@ export default function AdminProductManager({
 
     if (!files || files.length === 0) return;
 
-    // Filter only image files
+    // Filter image files only
     const imageFiles = files.filter(f => f.type.startsWith('image/'));
     if (imageFiles.length === 0) {
-      showToast('⚠️ Vui lòng chỉ chọn các tệp hình ảnh (JPG, PNG, WEBP...)');
+      showToast('⚠️ Vui lòng chọn các tệp hình ảnh hợp lệ (JPG, PNG, WEBP...)');
+      if (e.target) e.target.value = '';
       return;
     }
 
+    // Check size for each image
+    const oversizedFiles = [];
+    const validFiles = [];
+    for (const f of imageFiles) {
+      const check = checkFileLimit(f);
+      if (!check.valid) {
+        oversizedFiles.push(check);
+      } else {
+        validFiles.push(f);
+      }
+    }
+
+    if (oversizedFiles.length > 0) {
+      const detailList = oversizedFiles.map(o => `• "${o.fileName}": ${(o.sizeKb / 1024).toFixed(1)} MB > 10 MB`).join('\n');
+      alert(`⚠️ CẢNH BÁO: Các ảnh sau vượt quá giới hạn 10 MB:\n${detailList}\nVui lòng chọn ảnh nhỏ hơn!`);
+      if (validFiles.length === 0) {
+        if (e.target) e.target.value = '';
+        return;
+      }
+    }
+
     setUploadingImage(true);
-    setUploadProgressText(`☁️ Đang upload ${imageFiles.length} ảnh lên Cloudinary...`);
+    setUploadProgressText(`☁️ Đang chuẩn bị tải ${validFiles.length} ảnh lên Cloudinary...`);
+    
     try {
-      const res = await uploadMultipleImagesToCloudinary(imageFiles);
+      const res = await uploadMultipleImagesToCloudinary(validFiles, 'dntrace_products', (progress) => {
+        setUploadProgressText(
+          `☁️ Đang tải ảnh [${progress.current}/${progress.total}]: ${progress.name} (${progress.percent}%)...`
+        );
+      });
+
       if (res.urls && res.urls.length > 0) {
         setFormData(prev => {
           const currentGallery = prev.gallery || [];
           const newGallery = [...currentGallery, ...res.urls];
+          const firstImage = res.urls[0];
           return {
             ...prev,
             gallery: newGallery,
-            // If primary image is empty or default placeholder, set first uploaded as primary
-            image: (!prev.image || prev.image.includes('spec.png')) ? res.urls[0] : prev.image
+            image: (!prev.image || prev.image.includes('spec.png')) && firstImage ? firstImage : prev.image
           };
         });
         showToast(`✅ Đã tải thành công ${res.urls.length} ảnh lên Cloudinary!`);
@@ -350,7 +391,7 @@ export default function AdminProductManager({
         showToast('⚠️ Không nhận được link ảnh từ Cloudinary');
       }
     } catch (err) {
-      showToast('❌ Lỗi tải nhiều ảnh lên Cloudinary: ' + err.message);
+      showToast('❌ Lỗi tải ảnh lên Cloudinary: ' + err.message);
     } finally {
       setUploadingImage(false);
       setUploadProgressText('');
@@ -1579,7 +1620,7 @@ export default function AdminProductManager({
                           </span>
                         </h4>
                         <p className="text-[11px] text-stone-500">
-                          Cho phép chọn và upload <strong>NHIỀU ẢNH CÙNG LÚC</strong> lên Cloudinary
+                          Cho phép chọn và upload <strong>NHIỀU ẢNH</strong> cùng lúc lên Cloudinary
                         </p>
                       </div>
 
@@ -1589,20 +1630,20 @@ export default function AdminProductManager({
                           type="text"
                           value={manualGalleryUrl}
                           onChange={(e) => setManualGalleryUrl(e.target.value)}
-                          placeholder="Dán link ảnh thêm..."
-                          className="text-xs p-2 rounded-xl border border-stone-200 outline-none bg-stone-50 w-full sm:w-48"
+                          placeholder="Dán link ảnh..."
+                          className="text-xs p-2 rounded-xl border border-stone-200 outline-none bg-stone-50 w-full sm:w-44"
                         />
                         <button
                           type="button"
                           onClick={handleAddManualGalleryUrl}
-                          className="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold shrink-0"
+                          className="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold shrink-0 cursor-pointer"
                         >
                           Thêm link
                         </button>
                       </div>
                     </div>
 
-                    {/* Drag and Drop Zone for Multiple Files */}
+                    {/* Drag and Drop Zone for Multiple Images */}
                     <div
                       onDragOver={(e) => {
                         e.preventDefault();
@@ -1637,14 +1678,14 @@ export default function AdminProductManager({
                           <p className="text-sm font-black text-stone-900">
                             Nhấp để chọn hoặc kéo thả NHIỀU ẢNH cùng lúc vào đây
                           </p>
-                          <p className="text-xs text-stone-500 mt-0.5">
-                            Hỗ trợ chọn cùng lúc nhiều file JPG, PNG, WEBP, GIF... Tất cả sẽ được tải lên Cloudinary.
+                          <p className="text-xs text-stone-500 mt-0.5 max-w-xl mx-auto">
+                            Hỗ trợ chọn cùng lúc nhiều file JPG, PNG, WEBP... Hệ thống sẽ tự động tối ưu dung lượng và lưu trữ đám mây Cloudinary.
                           </p>
                         </div>
-                        <div className="pt-1">
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-[#0f2d22] text-white text-xs font-bold shadow-sm">
+                        <div className="pt-1 flex items-center justify-center gap-2">
+                          <span className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-[#0f2d22] text-white text-xs font-bold shadow-sm">
                             <Plus className="w-3.5 h-3.5 text-[#84CC16]" />
-                            <span>Chọn nhiều file từ máy</span>
+                            <span>Chọn nhiều ảnh từ máy</span>
                           </span>
                         </div>
                       </div>
@@ -1672,14 +1713,14 @@ export default function AdminProductManager({
                             return (
                               <div
                                 key={i}
-                                className={`group relative aspect-square rounded-2xl border-2 overflow-hidden bg-stone-50 transition-all ${
-                                  isPrimary ? 'border-[#84CC16] shadow-md ring-2 ring-[#84CC16]/30' : 'border-stone-200 hover:border-stone-400'
+                                className={`relative group aspect-square rounded-xl overflow-hidden border-2 transition ${
+                                  isPrimary ? 'border-[#84CC16] ring-2 ring-[#84CC16]/30' : 'border-stone-200 bg-stone-50'
                                 }`}
                               >
                                 <img
                                   src={imgUrl}
-                                  alt={`Gallery ${i + 1}`}
-                                  className="w-full h-full object-contain p-1"
+                                  alt={`gallery ${i}`}
+                                  className="w-full h-full object-cover"
                                 />
 
                                 {/* Cloudinary Tag */}
@@ -2010,7 +2051,7 @@ export default function AdminProductManager({
       {/* Lightbox Preview Modal */}
       {previewLightboxImg && (
         <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
           onClick={() => setPreviewLightboxImg(null)}
         >
           <button

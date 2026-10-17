@@ -84,6 +84,16 @@ function ProductGallerySlider({ images, productName, onOpenLightbox }) {
     }
   };
 
+  if (!images || images.length === 0) {
+    return (
+      <div className="text-center py-8 text-stone-500 font-semibold text-xs">
+        Chưa có dữ liệu
+      </div>
+    );
+  }
+
+  const currentItem = images[currentIndex];
+
   return (
     <div className="space-y-4">
       {/* MOBILE SLICK SLIDER (chỉ hiển thị trên Mobile < sm) */}
@@ -91,19 +101,19 @@ function ProductGallerySlider({ images, productName, onOpenLightbox }) {
         {/* Main Slide Card */}
         <div className="relative group">
           <div
-            className="relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shadow-sm cursor-zoom-in select-none flex items-center justify-center"
+            className="relative aspect-4/3 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shadow-sm cursor-pointer select-none flex items-center justify-center"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onClick={() => onOpenLightbox && onOpenLightbox(images[currentIndex])}
+            onClick={() => onOpenLightbox && onOpenLightbox(currentItem)}
           >
             <img
-              src={images[currentIndex]}
+              src={currentItem}
               alt={`${productName} ảnh ${currentIndex + 1}`}
-              className="w-full h-full object-cover "
+              className="w-full h-full object-cover"
             />
 
-            {/* Tap to Zoom Badge */}
+            {/* Action Badge */}
             <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg bg-black/65 text-white text-[10px] font-semibold flex items-center gap-1 backdrop-blur-xs shadow">
               <ZoomIn className="w-3.5 h-3.5" />
               <span>Chạm xem lớn</span>
@@ -127,7 +137,7 @@ function ProductGallerySlider({ images, productName, onOpenLightbox }) {
                   prevSlide();
                 }}
                 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white flex items-center justify-center shadow-lg transition backdrop-blur-xs z-10 cursor-pointer"
-                aria-label="Ảnh trước"
+                aria-label="Trước"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -138,16 +148,13 @@ function ProductGallerySlider({ images, productName, onOpenLightbox }) {
                   nextSlide();
                 }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 active:scale-90 text-white flex items-center justify-center shadow-lg transition backdrop-blur-xs z-10 cursor-pointer"
-                aria-label="Ảnh kế tiếp"
+                aria-label="Kế tiếp"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
         </div>
-
-        {/* 2 Navigation Buttons Dưới & Dots Pagination */}
-      
 
         {/* Thumbnails strip on mobile */}
         {images.length > 1 && (
@@ -157,8 +164,8 @@ function ProductGallerySlider({ images, productName, onOpenLightbox }) {
                 key={idx}
                 type="button"
                 onClick={() => setCurrentIndex(idx)}
-                className={`relative shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition ${
-                  idx === currentIndex ? 'border-[#0f2d22] ring-2 ring-[#84CC16]/50' : 'border-stone-200 opacity-60'
+                className={`relative shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition bg-stone-100 ${
+                  idx === currentIndex ? 'border-[#0f2d22] ring-2 ring-[#84CC16]/50' : 'border-stone-200 opacity-70'
                 }`}
               >
                 <img src={img} alt={`thumb ${idx + 1}`} className="w-full h-full object-cover" />
@@ -1172,15 +1179,17 @@ export default function ProductTraceabilityPage({
       {/* Image Lightbox Modal */}
       {lightboxImg && (
         <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
           onClick={() => setLightboxImg(null)}
         >
           <button
             onClick={() => setLightboxImg(null)}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition cursor-pointer z-20"
+            aria-label="Đóng"
           >
             <X className="w-6 h-6" />
           </button>
+
           <img
             src={lightboxImg}
             alt="Phóng to ảnh sản phẩm"

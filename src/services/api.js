@@ -16,6 +16,8 @@ export function slugify(text) {
     .replace(/-+/g, '-');
 }
 
+
+
 // Fallback products in case backend is offline
 let localFallbackProducts = JSON.parse(JSON.stringify(defaultSeedProducts)).map((p, idx) => ({
   ...p,
@@ -82,9 +84,82 @@ export async function loginAdmin(username, password) {
 }
 
 // ==========================================
+// CLOUDINARY UPLOAD HELPERS & FILE OPTIMIZATION
 // ==========================================
-// CLOUDINARY UPLOAD HELPERS
-// ==========================================
+
+export const MAX_IMAGE_SIZE_KB = 10240; // 10 MB (Ảnh chụp từ máy ảnh/điện thoại sẽ tự động nén)
+
+// Check image file size limit
+export function checkFileLimit(file) {
+  if (!file || typeof file === 'string') return { valid: true };
+  const sizeKb = Math.round(file.size / 1024);
+  const limitKb = MAX_IMAGE_SIZE_KB;
+
+  return {
+    valid: sizeKb <= limitKb,
+    sizeKb,
+    limitKb,
+    fileName: file.name
+  };
+}
+
+// Client-side Image Compression using HTML Canvas (tự động nén ảnh chụp điện thoại dung lượng lớn)
+export const compressImageIfNeeded = async (file, maxDimension = 1920, quality = 0.82) => {
+  if (!file || typeof file === 'string' || !file.type || !file.type.startsWith('image/')) {
+    return file;
+  }
+  // Nếu ảnh đã nhỏ hơn 400 KB thì không cần nén thêm
+  if (file.size <= 400 * 1024) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob && blob.size < file.size) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+      img.src = url;
+    } catch {
+      resolve(file);
+    }
+  });
+};
 
 // Helper to convert browser File object to Base64 Data URL
 export const fileToBase64 = (file) => {
@@ -102,7 +177,10 @@ export const fileToBase64 = (file) => {
 // Upload a single image (accepts File object or Base64 string or URL)
 export async function uploadImageToCloudinary(fileOrBase64, folder = 'dntrace_products') {
   try {
-    const base64Data = await fileToBase64(fileOrBase64);
+    // Tự động nén ảnh trước khi chuyển sang base64 nếu là tệp ảnh
+    const optimized = await compressImageIfNeeded(fileOrBase64);
+    const base64Data = await fileToBase64(optimized);
+
     const res = await fetch(`${API_BASE}/upload`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -123,42 +201,53 @@ export async function uploadImageToCloudinary(fileOrBase64, folder = 'dntrace_pr
   }
 }
 
-// Upload multiple images in parallel (accepts Array of File objects or Base64 strings)
-export async function uploadMultipleImagesToCloudinary(filesOrBase64s, folder = 'dntrace_products') {
-  try {
-    const base64List = await Promise.all(
-      Array.from(filesOrBase64s).map(f => fileToBase64(f))
-    );
+// Upload multiple images individually to avoid exceeding Vercel 4.5MB request limit
+export async function uploadMultipleImagesToCloudinary(filesOrBase64s, folder = 'dntrace_products', onProgress = null) {
+  const fileList = Array.from(filesOrBase64s);
+  const urls = [];
+  const errors = [];
 
-    const res = await fetch(`${API_BASE}/upload-multiple`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ images: base64List, folder })
-    });
-
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message || 'Lỗi tải danh sách ảnh lên Cloudinary');
-    return json;
-  } catch (err) {
-    console.warn('Lỗi upload batch, fallback tuần tự:', err.message);
-    // Fallback: Upload one by one
-    const results = [];
-    for (const item of filesOrBase64s) {
-      try {
-        const singleRes = await uploadImageToCloudinary(item, folder);
-        if (singleRes.url) results.push(singleRes.url);
-      } catch (e) {
-        console.error('Lỗi upload 1 ảnh:', e);
-      }
+  for (let i = 0; i < fileList.length; i++) {
+    const item = fileList[i];
+    const fileName = typeof item === 'string' ? `Tệp ${i + 1}` : item.name;
+    
+    if (onProgress) {
+      onProgress({
+        current: i + 1,
+        total: fileList.length,
+        name: fileName,
+        percent: Math.round(((i) / fileList.length) * 100)
+      });
     }
-    return {
-      success: results.length > 0,
-      urls: results,
-      count: results.length,
-      storage: 'mixed',
-      message: `Đã xử lý xong ${results.length} ảnh!`
-    };
+
+    try {
+      const res = await uploadImageToCloudinary(item, folder);
+      if (res && res.url) {
+        urls.push(res.url);
+      }
+    } catch (err) {
+      console.error(`Lỗi tải tệp ${fileName}:`, err);
+      errors.push({ name: fileName, error: err.message });
+    }
   }
+
+  if (onProgress) {
+    onProgress({
+      current: fileList.length,
+      total: fileList.length,
+      name: 'Hoàn tất',
+      percent: 100
+    });
+  }
+
+  return {
+    success: urls.length > 0,
+    urls,
+    count: urls.length,
+    errors,
+    storage: 'cloudinary',
+    message: `Đã tải thành công ${urls.length}/${fileList.length} tệp lên Cloudinary!`
+  };
 }
 
 // ==========================================

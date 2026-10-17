@@ -66,7 +66,7 @@ export default function AdminLogin({ onLoginSuccess, onBackToTraceability }) {
             <DNTraceLogo className="h-9" pillBackground={true} />
           </div>
           <h2 className="text-2xl font-black text-stone-900 tracking-tight">
-            Đăng Nhập Quản Trị Hệ Thống
+            Đăng Nhập
           </h2>
           <p className="text-xs text-stone-500">
             Khu vực quản lý sản phẩm &amp; cấp mã QR truy xuất dntrace.com
@@ -81,7 +81,6 @@ export default function AdminLogin({ onLoginSuccess, onBackToTraceability }) {
           </div>
         )}
 
-        {/* Credentials hint */}
           
 
         {/* Login Form */}
