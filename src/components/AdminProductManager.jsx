@@ -109,7 +109,9 @@ export default function AdminProductManager({
     storageGuide: '',
     warning: '',
     story: '',
+    storyImages: [],
     rawMaterials: '',
+    rawMaterialsImages: [],
     manufacturer: {
       name: '',
       country: '',
@@ -188,7 +190,9 @@ export default function AdminProductManager({
       storageGuide: product.storageGuide || '',
       warning: product.warning || '',
       story: product.story || '',
+      storyImages: product.storyImages || [],
       rawMaterials: product.rawMaterials || '',
+      rawMaterialsImages: product.rawMaterialsImages || [],
       manufacturer: {
         name: product.manufacturer?.name || '',
         country: product.manufacturer?.country || '',
@@ -1467,11 +1471,32 @@ export default function AdminProductManager({
 
               {/* TAB 4: EXTENDED CONTENT */}
               {modalTab === 'content' && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">
-                      CÂU CHUYỆN SẢN PHẨM
-                    </label>
+                <div className="space-y-5">
+
+                  {/* Upload Progress Indicator (hiện khi đang tải ảnh) */}
+                  {uploadingImage && (
+                    <div className="p-3.5 rounded-2xl bg-[#84CC16]/20 border border-[#84CC16]/40 flex items-center gap-3 animate-pulse">
+                      <RefreshCw className="w-4 h-4 text-[#0f2d22] animate-spin shrink-0" />
+                      <div>
+                        <p className="text-xs font-black text-[#0f2d22]">
+                          {uploadProgressText || '☁️ Đang tải ảnh lên Cloudinary...'}
+                        </p>
+                        <p className="text-[11px] text-stone-600 mt-0.5">Vui lòng chờ, đừng đóng cửa sổ này.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ─── CÂU CHUYỆN SẢN PHẨM ─── */}
+                  <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#84CC16]/20 flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-[#0f2d22]" />
+                      </div>
+                      <label className="text-xs font-black text-stone-900 uppercase tracking-wide">
+                        CÂU CHUYỆN SẢN PHẨM
+                      </label>
+                    </div>
+
                     <textarea
                       rows={3}
                       value={formData.story}
@@ -1479,12 +1504,100 @@ export default function AdminProductManager({
                       placeholder="Kể lại câu chuyện truyền thống, nguồn cảm hứng hoặc quy trình làm nghề..."
                       className="w-full text-xs sm:text-sm p-3 rounded-xl border border-stone-200 outline-none focus:border-[#0f2d22] bg-white"
                     />
+
+                    {/* Story Images */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wide">
+                          Hình ảnh minh hoạ ({(formData.storyImages || []).length})
+                        </span>
+                        {(formData.storyImages || []).length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const toDelete = (formData.storyImages || []).filter(u => u.includes('cloudinary.com'));
+                              setFormData(prev => ({ ...prev, storyImages: [] }));
+                              if (toDelete.length > 0) deleteMultipleCloudinaryImages(toDelete);
+                            }}
+                            className="text-[11px] text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
+                          >
+                            Xoá tất cả
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Upload button */}
+                      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0f2d22] hover:bg-[#194535] text-white text-xs font-bold cursor-pointer transition shadow-sm">
+                        <CloudUpload className="w-3.5 h-3.5 text-[#84CC16]" />
+                        <span>Tải ảnh minh hoạ lên</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          disabled={uploadingImage}
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (!files.length) return;
+                            const validFiles = files.filter(f => { const c = checkFileLimit(f); return c.valid; });
+                            if (!validFiles.length) { showToast('⚠️ Ảnh vượt giới hạn 10 MB'); return; }
+                            setUploadingImage(true);
+                            setUploadProgressText('☁️ Đang tải ảnh câu chuyện lên Cloudinary...');
+                            try {
+                              const res = await uploadMultipleImagesToCloudinary(validFiles, 'dntrace_products', (p) => {
+                                setUploadProgressText(`☁️ [${p.current}/${p.total}] ${p.name}...`);
+                              });
+                              if (res.urls?.length > 0) {
+                                setFormData(prev => ({ ...prev, storyImages: [...(prev.storyImages || []), ...res.urls] }));
+                                showToast(`✅ Đã tải ${res.urls.length} ảnh câu chuyện!`);
+                              }
+                            } catch (err) { showToast('❌ ' + err.message); }
+                            finally { setUploadingImage(false); setUploadProgressText(''); e.target.value = ''; }
+                          }}
+                        />
+                      </label>
+
+                      {/* Story image grid */}
+                      {(formData.storyImages || []).length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1">
+                          {(formData.storyImages || []).map((url, idx) => (
+                            <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-50">
+                              <img src={url} alt={`story-img-${idx}`} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewLightboxImg(url)}
+                                  className="p-1.5 rounded-lg bg-white/20 text-white hover:scale-110 transition cursor-pointer"
+                                  title="Xem lớn"
+                                ><ZoomIn className="w-3.5 h-3.5" /></button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => ({ ...prev, storyImages: (prev.storyImages || []).filter((_, i) => i !== idx) }));
+                                    if (url.includes('cloudinary.com')) deleteCloudinaryImage(url);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-rose-500/80 text-white hover:scale-110 transition cursor-pointer"
+                                  title="Xoá ảnh"
+                                ><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">
-                      NGUYÊN LIỆU ĐẦU VÀO
-                    </label>
+                  {/* ─── NGUYÊN LIỆU ĐẦU VÀO ─── */}
+                  <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#84CC16]/20 flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-[#0f2d22]" />
+                      </div>
+                      <label className="text-xs font-black text-stone-900 uppercase tracking-wide">
+                        NGUYÊN LIỆU ĐẦU VÀO
+                      </label>
+                    </div>
+
                     <textarea
                       rows={3}
                       value={formData.rawMaterials}
@@ -1492,8 +1605,90 @@ export default function AdminProductManager({
                       placeholder="Mô tả nguồn gốc nguyên liệu sạch, tiêu chuẩn tuyển chọn..."
                       className="w-full text-xs sm:text-sm p-3 rounded-xl border border-stone-200 outline-none focus:border-[#0f2d22] bg-white"
                     />
+
+                    {/* Raw Materials Images */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wide">
+                          Hình ảnh nguyên liệu ({(formData.rawMaterialsImages || []).length})
+                        </span>
+                        {(formData.rawMaterialsImages || []).length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const toDelete = (formData.rawMaterialsImages || []).filter(u => u.includes('cloudinary.com'));
+                              setFormData(prev => ({ ...prev, rawMaterialsImages: [] }));
+                              if (toDelete.length > 0) deleteMultipleCloudinaryImages(toDelete);
+                            }}
+                            className="text-[11px] text-rose-500 hover:text-rose-700 hover:underline cursor-pointer"
+                          >
+                            Xoá tất cả
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Upload button */}
+                      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0f2d22] hover:bg-[#194535] text-white text-xs font-bold cursor-pointer transition shadow-sm">
+                        <CloudUpload className="w-3.5 h-3.5 text-[#84CC16]" />
+                        <span>Tải ảnh nguyên liệu lên</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          disabled={uploadingImage}
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (!files.length) return;
+                            const validFiles = files.filter(f => { const c = checkFileLimit(f); return c.valid; });
+                            if (!validFiles.length) { showToast('⚠️ Ảnh vượt giới hạn 10 MB'); return; }
+                            setUploadingImage(true);
+                            setUploadProgressText('☁️ Đang tải ảnh nguyên liệu lên Cloudinary...');
+                            try {
+                              const res = await uploadMultipleImagesToCloudinary(validFiles, 'dntrace_products', (p) => {
+                                setUploadProgressText(`☁️ [${p.current}/${p.total}] ${p.name}...`);
+                              });
+                              if (res.urls?.length > 0) {
+                                setFormData(prev => ({ ...prev, rawMaterialsImages: [...(prev.rawMaterialsImages || []), ...res.urls] }));
+                                showToast(`✅ Đã tải ${res.urls.length} ảnh nguyên liệu!`);
+                              }
+                            } catch (err) { showToast('❌ ' + err.message); }
+                            finally { setUploadingImage(false); setUploadProgressText(''); e.target.value = ''; }
+                          }}
+                        />
+                      </label>
+
+                      {/* Raw materials image grid */}
+                      {(formData.rawMaterialsImages || []).length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 pt-1">
+                          {(formData.rawMaterialsImages || []).map((url, idx) => (
+                            <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-50">
+                              <img src={url} alt={`raw-img-${idx}`} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewLightboxImg(url)}
+                                  className="p-1.5 rounded-lg bg-white/20 text-white hover:scale-110 transition cursor-pointer"
+                                  title="Xem lớn"
+                                ><ZoomIn className="w-3.5 h-3.5" /></button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => ({ ...prev, rawMaterialsImages: (prev.rawMaterialsImages || []).filter((_, i) => i !== idx) }));
+                                    if (url.includes('cloudinary.com')) deleteCloudinaryImage(url);
+                                  }}
+                                  className="p-1.5 rounded-lg bg-rose-500/80 text-white hover:scale-110 transition cursor-pointer"
+                                  title="Xoá ảnh"
+                                ><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
+                  {/* BẢN ĐỒ */}
                   <div>
                     <label className="block text-xs font-bold text-stone-700 mb-1">
                       BẢN ĐỒ VÙNG NGUYÊN LIỆU / NƠI SẢN XUẤT (Link Google Maps Embed hoặc thẻ &lt;iframe&gt;)

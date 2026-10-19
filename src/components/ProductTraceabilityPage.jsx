@@ -239,6 +239,18 @@ export default function ProductTraceabilityPage({
         ) || null;
       }
 
+      // Normalize: đảm bảo các field mảng luôn là array (tương thích với dữ liệu cũ chưa có field)
+      if (chosen) {
+        chosen = {
+          ...chosen,
+          gallery: Array.isArray(chosen.gallery) ? chosen.gallery : [],
+          storyImages: Array.isArray(chosen.storyImages) ? chosen.storyImages : [],
+          rawMaterialsImages: Array.isArray(chosen.rawMaterialsImages) ? chosen.rawMaterialsImages : [],
+          benefits: Array.isArray(chosen.benefits) ? chosen.benefits : [],
+          standards: Array.isArray(chosen.standards) ? chosen.standards : [],
+        };
+      }
+
       setProductData(chosen);
     } catch (err) {
       console.error('Lỗi tải sản phẩm:', err);
@@ -628,7 +640,7 @@ export default function ProductTraceabilityPage({
 
             {/* 4 MỤC BỔ SUNG TRONG BẢN CÔNG BỐ */}
             <div className="space-y-6 pt-4 border-t border-stone-200">
-              
+
               {/* CÂU CHUYỆN SẢN PHẨM */}
               <div className="space-y-2">
                 <h4 className="text-sm font-black text-stone-900 uppercase tracking-wide">
@@ -637,6 +649,27 @@ export default function ProductTraceabilityPage({
                 <p className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-stone-50 p-4 rounded-xl border border-stone-200 whitespace-pre-line">
                   {productData.story || 'Chưa có dữ liệu'}
                 </p>
+                {productData.storyImages.length > 0 && (
+                  <div className="space-y-1.5 pt-0.5">
+                    <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wide">
+                      Hình ảnh minh hoạ ({productData.storyImages.length})
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {productData.storyImages.map((img, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setLightboxImg(img)}
+                          className="group relative aspect-4/3 rounded-xl overflow-hidden border border-stone-200 cursor-zoom-in bg-stone-100 hover:shadow-md transition"
+                        >
+                          <img src={img} alt={`story-${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <ZoomIn className="w-5 h-5 text-white drop-shadow" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* NGUYÊN LIỆU ĐẦU VÀO */}
@@ -647,6 +680,27 @@ export default function ProductTraceabilityPage({
                 <p className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-stone-50 p-4 rounded-xl border border-stone-200 whitespace-pre-line">
                   {productData.rawMaterials || 'Chưa có dữ liệu'}
                 </p>
+                {productData.rawMaterialsImages.length > 0 && (
+                  <div className="space-y-1.5 pt-0.5">
+                    <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wide">
+                      Hình ảnh nguyên liệu ({productData.rawMaterialsImages.length})
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {productData.rawMaterialsImages.map((img, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => setLightboxImg(img)}
+                          className="group relative aspect-4/3 rounded-xl overflow-hidden border border-stone-200 cursor-zoom-in bg-stone-100 hover:shadow-md transition"
+                        >
+                          <img src={img} alt={`raw-${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <ZoomIn className="w-5 h-5 text-white drop-shadow" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* BẢN ĐỒ VÙNG NGUYÊN LIỆU / NƠI SẢN XUẤT */}
@@ -996,6 +1050,33 @@ export default function ProductTraceabilityPage({
                       {productData.story || 'Chưa có dữ liệu'}
                     </p>
                   </div>
+
+                  {/* Story images grid */}
+                  {productData.storyImages?.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wide">
+                        Hình ảnh minh hoạ ({productData.storyImages.length})
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {productData.storyImages.map((img, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => setLightboxImg(img)}
+                            className="group relative aspect-4/3 rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 cursor-zoom-in shadow-sm hover:shadow-md transition"
+                          >
+                            <img
+                              src={img}
+                              alt={`câu chuyện ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <ZoomIn className="w-6 h-6 text-white drop-shadow" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1019,6 +1100,33 @@ export default function ProductTraceabilityPage({
                       {productData.rawMaterials || 'Chưa có dữ liệu'}
                     </p>
                   </div>
+
+                  {/* Raw materials images grid */}
+                  {productData.rawMaterialsImages?.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wide">
+                        Hình ảnh nguyên liệu ({productData.rawMaterialsImages.length})
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {productData.rawMaterialsImages.map((img, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => setLightboxImg(img)}
+                            className="group relative aspect-4/3 rounded-2xl overflow-hidden border border-stone-200 bg-stone-50 cursor-zoom-in shadow-sm hover:shadow-md transition"
+                          >
+                            <img
+                              src={img}
+                              alt={`nguyên liệu ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <ZoomIn className="w-6 h-6 text-white drop-shadow" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
