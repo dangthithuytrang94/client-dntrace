@@ -631,13 +631,8 @@ export default function AdminProductManager({
                 </button>
               </>
             ) : (
-              <button
-                onClick={loadData}
-                className="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Làm Mới Danh Sách</span>
-              </button>
+              <>
+              </>
             )}
           </div>
 
