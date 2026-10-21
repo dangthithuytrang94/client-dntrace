@@ -623,14 +623,6 @@ export default function AdminProductManager({
             {adminTab === 'products' ? (
               <>
                 <button
-                  onClick={handleSeedData}
-                  className="px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                  title="Tải lại dữ liệu mẫu Kẹo dừa dẻo Ngọc Hải"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Khởi Tạo Dữ Liệu Mẫu</span>
-                </button>
-                <button
                   onClick={handleOpenAddModal}
                   className="px-4 py-2.5 rounded-xl bg-[#84CC16] hover:bg-[#74B843] text-[#0f2d22] text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer"
                 >
