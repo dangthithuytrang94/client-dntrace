@@ -6,7 +6,8 @@ import {
   X,
   Package,
   Lock,
-  ArrowUpRight
+  ArrowUpRight,
+  Loader2
 } from 'lucide-react';
 import { fetchProducts, slugify } from '../services/api';
 
@@ -16,6 +17,7 @@ export default function HomePage({
   onNavigateToAdmin
 }) {
   const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchContainerRef = useRef(null);
@@ -24,6 +26,7 @@ export default function HomePage({
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
+      setIsLoading(true);
       try {
         const res = await fetchProducts();
         if (isMounted) {
@@ -31,6 +34,10 @@ export default function HomePage({
         }
       } catch (err) {
         console.error('Lỗi khi tải danh sách sản phẩm:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     loadData();
@@ -162,7 +169,12 @@ export default function HomePage({
           {/* LIVE SEARCH AUTOCOMPLETE DROPDOWN (Chỉ hiển thị 4 sản phẩm, nếu nhiều hơn sẽ scroll) */}
           {isSearchFocused && searchTerm.trim() && (
             <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl bg-white/98 shadow-2xl border border-stone-200 p-2 z-50 text-left animate-fade-in backdrop-blur-md">
-              {searchResults.length > 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center p-4 text-stone-600">
+                  <Loader2 className="animate-spin mr-2" />
+                  <span>Vui lòng chờ …</span>
+                </div>
+              ) : searchResults.length > 0 ? (
                 <div>
                   <div className="px-3 py-1.5 text-[11px] font-bold text-stone-400 uppercase tracking-wider flex items-center justify-between border-b border-stone-100 mb-1">
                     <span>Gợi ý ({searchResults.length} sản phẩm)</span>
